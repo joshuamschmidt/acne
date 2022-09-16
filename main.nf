@@ -14,7 +14,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-
+/*
+this main.nf based on structure of nf-core/sarek: https://github.com/nf-core/sarek/blob/master/main.nf
+*/
 
 nextflow.enable.dsl=2
 

@@ -1,4 +1,4 @@
-process CALLCNV {
+process PENNCNV_DETECT {
     publishDir "$params.outdir/logs", pattern: "*.rawcnv.log", mode: 'copy'
     publishDir "$params.outdir/raw_calls", pattern: "*.rawcnv", mode: 'copy'
 
