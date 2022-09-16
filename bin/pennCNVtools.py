@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import polars as pl
 import textwrap
+import os
 
 '''required and optional argument parser'''
 
@@ -24,7 +25,7 @@ parser = argparse.ArgumentParser(prog='pennCNVtools',
                         Output Column headers are:
                         Name    Chr     Position        PFB 
                         
-                        Option "split-ind" Generates a ind file for 
+                        Option "split" Generates a ind file for
                         PENN CNV
 
                         Output Column headers are:
@@ -48,13 +49,12 @@ optional.add_argument(
     help='show this help message and exit'
 )
 
-parser.add_argument('tool', type=str, nargs=1, choices={"split", "pfb", "split-ind"},
-                    help='which tool to run')
+parser.add_argument('tool',metavar='TOOL', type=str, nargs=1, choices={"partition", "pfb", "split"}, help='which tool to run')
 
 required.add_argument('--input', type=str, dest='input',
                     help='input file from genome studio with GT, LogR and BAF cols per sample')
 
-required.add_argument('--output', type=str,
+optional.add_argument('--output', type=str,
                        dest='output',
                        help='output:\nif tool is "pfb", then creates a pfb file\nif "split", prefix for breaking into n chunks of inds\n if "split-ind", it has no effect')
 
@@ -66,7 +66,7 @@ optional.add_argument('--n', type=int, dest='n_per_partition',
 #----- class defs
 
 # '''class for data to split into n ind chunks'''
-class sampleData():
+class sampleDataParition():
     def __init__(self, input: str, target_n: int):
         self.input = input
         self.target_n = target_n
@@ -74,8 +74,9 @@ class sampleData():
         self.load_data()
         self.samples= []
         self.get_samples()
-        self.n_samples # total number in input file
+        self.n_samples = len(self.samples) # total number in input file
         self.n_per_partition=[]
+        self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
 
     def load_data(self):
@@ -87,20 +88,26 @@ class sampleData():
         self.samples=[s.split('.GType')[0] for s in self.samples]
 
     def define_partition_n(self):
+        if(self.n_samples < 2 * self.target_n):
+            print("target_n is larger than input sample_n / 2. Defaulting to splitting input in half")
+            self.target_n, remainder = divmod(self.n_samples, 2)
+            if(remainder > 0):
+                self.target_n += 1
         n_partitions, remainder = divmod(self.n_samples, self.target_n)
         self.n_per_partition = [self.target_n] * n_partitions
         if(remainder > n_partitions):
-            add_all, remainder = divmod(self.n_samples, n_partitions)
+            add_all, remainder = divmod(remainder, n_partitions)
             self.n_per_partition = [n + add_all for n in self.n_per_partition]
         if(remainder > 0):
             for i in range(remainder):
-            self.n_per_partition[i] += 1
+                self.n_per_partition[i] += 1
 
     def write_partition_data(self):
         all_samples = self.samples
         for j, n_part in enumerate(self.n_per_partition):
             part_samples = all_samples[:n_part]
-            part_cols = [s+".GType", s+".Log R Ratio", s+".B Allele Freq" for s in part_samples]
+            part_cols = [[s+".GType", s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
+            part_cols = [item for sublist in part_cols for item in sublist]
             sub=self.df.select(["Name", "Chr", "Position"] + part_cols)
             sub.write_csv(self.prefix + '_partition-' + str(j+1) + '.txt', sep='\t')
             all_samples = all_samples[n_part:]
@@ -156,15 +163,16 @@ class pafObj():
 
 def main():
     args = parser.parse_args()
-    if(parser.tool=='split'):
-        data = sampleData(args.input,args.n)
+    tool=args.tool[0]
+    if(tool=='partition'):
+        data = sampleDataParition(args.input,args.n_per_partition)
         data.write_partition_data()
 
-    if(parser.tool=='pfb'):
+    if(tool=='pfb'):
         paf = pafObj(args.input)
         paf.paf.write_csv(args.output, sep='\t')
 
-    if(parser.tool=='split-ind'):
+    if(tool=='split'):
         data = sampleData(args.input)
         data.write_sample_data()
 
