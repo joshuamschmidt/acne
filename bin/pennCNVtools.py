@@ -58,6 +58,7 @@ optional.add_argument('--output', type=str,
                        dest='output',
                        help='output:\nif tool is "pfb", then creates a pfb file\nit has no effect for other tools')
 
+
 optional.add_argument('--n', type=int, dest='n_per_partition',
                       help='how many inds should large input be split into',
                       default=None)
@@ -109,7 +110,7 @@ class sampleDataPartition():
             part_cols = [[s+".GType", s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
             part_cols = [item for sublist in part_cols for item in sublist]
             sub=self.df.select(["Name", "Chr", "Position"] + part_cols)
-            sub.write_csv(self.prefix + '_partition-' + str(j+1) + '.txt', sep='\t')
+            sub.write_csv(self.prefix + "-" + str(j+1) + '-partition.txt', sep='\t')
             all_samples = all_samples[n_part:]
 
 
@@ -135,8 +136,8 @@ class sampleDataSplit():
     def write_sample_data(self):
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
-            sub=self.df.select(["Name", "Chr", "Position", col_1, col_2, col_3])
-            sub.write_csv(s+'.input.txt', sep='\t')
+            sub=self.df.select(["Name", col_1, col_2, col_3])
+            sub.write_csv(s+'.txt', sep='\t')
 
 
 # '''class for GtLogRBaf to pfb'''
