@@ -49,14 +49,14 @@ optional.add_argument(
     help='show this help message and exit'
 )
 
-parser.add_argument('tool',metavar='TOOL', type=str, nargs=1, choices={"partition", "pfb", "split"}, help='which tool to run')
+parser.add_argument('tool',metavar='TOOL', type=str, nargs=1, choices={"partition", "split", "pfb"}, help='which tool to run')
 
 required.add_argument('--input', type=str, dest='input',
                     help='input file from genome studio with GT, LogR and BAF cols per sample')
 
 optional.add_argument('--output', type=str,
                        dest='output',
-                       help='output:\nif tool is "pfb", then creates a pfb file\nif "split", prefix for breaking into n chunks of inds\n if "split-ind", it has no effect')
+                       help='output:\nif tool is "pfb", then creates a pfb file\nit has no effect for other tools')
 
 optional.add_argument('--n', type=int, dest='n_per_partition',
                       help='how many inds should large input be split into',
@@ -66,7 +66,7 @@ optional.add_argument('--n', type=int, dest='n_per_partition',
 #----- class defs
 
 # '''class for data to split into n ind chunks'''
-class sampleDataParition():
+class sampleDataPartition():
     def __init__(self, input: str, target_n: int):
         self.input = input
         self.target_n = target_n
@@ -116,7 +116,7 @@ class sampleDataParition():
 
 
 # '''class for data to split by ind'''
-class sampleData():
+class sampleDataSplit():
     def __init__(self, input: str,):
         self.input = input
         self.df = []
@@ -140,11 +140,11 @@ class sampleData():
 
 
 # '''class for GtLogRBaf to pfb'''
-class pafObj():
+class pfbObj():
     def __init__(self, input: str,):
         self.input = input
-        self.get_paf()
-    def get_paf(self):
+        self.get_pfb()
+    def get_pfb(self):
         q = (
             pl.scan_csv(self.input, sep='\t')
             .select(["Name", "Chr", "Position", pl.col("^*.GType$")])
@@ -159,22 +159,28 @@ class pafObj():
             .select(["Name", "Chr", "Position","PFB"])
             )
         df = q.collect()
-        self.paf = df
+        self.pfb = df
 
 def main():
     args = parser.parse_args()
     tool=args.tool[0]
+    if not args.output:
+        if args.tool is None or args.four is None:
+            parser.error('without -2, *both* -3 <a> *and* -4 <b> are required')
     if(tool=='partition'):
-        data = sampleDataParition(args.input,args.n_per_partition)
+        data = sampleDataPartition(args.input,args.n_per_partition)
         data.write_partition_data()
 
-    if(tool=='pfb'):
-        paf = pafObj(args.input)
-        paf.paf.write_csv(args.output, sep='\t')
-
     if(tool=='split'):
-        data = sampleData(args.input)
+        if not args.output:
+            parser.error('pfb tool selected: --output must be specified')
+        data = sampleDataSplit(args.input)
         data.write_sample_data()
+
+    if(tool=='pfb'):
+        pfb = pfbObj(args.input)
+        pfb.pfb.write_csv(args.output, sep='\t')
+
 
 if __name__ == '__main__':
     main()
