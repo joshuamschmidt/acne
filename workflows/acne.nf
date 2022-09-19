@@ -13,7 +13,7 @@ def checkPathParamList = [
 for (param in checkPathParamList) if (param) file(param, checkIfExists: true)
 
 // Set input
-ch_input_sample = path(params.input, checkIfExists: true))
+ch_input_sample = path(params.input, checkIfExists: true)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
