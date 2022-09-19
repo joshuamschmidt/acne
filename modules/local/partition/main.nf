@@ -1,12 +1,12 @@
 process PARTITIONGS {
 
-    container:
+    container 'joshmschmidt/penncnvtools:0.0.1'
 
     input:
-    tuple val(id), val(partition_size), path(gs_file)
+    tuple path(gs_file), val(partition_size)
 
     output:
-    tuple val(id), path("*.partition") , emit: gs
+    path("*.partition") , emit: gs
 
     script:
     """
