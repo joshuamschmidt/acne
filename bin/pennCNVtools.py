@@ -110,7 +110,7 @@ class sampleDataPartition():
             part_cols = [[s+".GType", s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
             part_cols = [item for sublist in part_cols for item in sublist]
             sub=self.df.select(["Name", "Chr", "Position"] + part_cols)
-            sub.write_csv(self.prefix + "-" + str(j+1) + '-partition.txt', sep='\t')
+            sub.write_csv(self.prefix + "-" + str(j+1) + '.partition', sep='\t')
             all_samples = all_samples[n_part:]
 
 
@@ -165,9 +165,6 @@ class pfbObj():
 def main():
     args = parser.parse_args()
     tool=args.tool[0]
-    if not args.output:
-        if args.tool is None or args.four is None:
-            parser.error('without -2, *both* -3 <a> *and* -4 <b> are required')
     if(tool=='partition'):
         data = sampleDataPartition(args.input,args.n_per_partition)
         data.write_partition_data()

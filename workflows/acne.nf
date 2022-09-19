@@ -1,11 +1,9 @@
-
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input,
     params.gcModel,
     params.hmm
 ]
-
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,7 +21,24 @@ ch_input_sample = path(params.input, checkIfExists: true))
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { PARTITIONGS    } from '../modules/local/partition/main'
-include { SPLITGS        } from '../modules/local/split/main'
-include { MAKEPFB        } from '../modules/local/pfb/main'
-include { PENNCNV_DETECT } from '../modules/local/detect/main'
+include { PARTITIONGS } from '../modules/local/partition/main'
+//include { BATCH_CALL  } from '../subworkflows/batch'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN MAIN WORKFLOW
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+workflow ACNE {
+  if (params.split) {
+    if (!params.split_n) {
+      log.error "must inlude n samples to split large GS project"
+      exit 1
+    }
+    PARTITIONGS(params.runID, params.split_n, ch_input_sample)
+    //split_channel = PARTITIONGS.gs
+    //BATCH_CALL(PARTITIONGS.out)
+    }
+   //BATCH_CALL(params.runID, ch_input_sample)
+ }
