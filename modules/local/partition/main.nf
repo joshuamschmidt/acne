@@ -1,12 +1,12 @@
 process PARTITIONGS {
 
-    label 'pythonTasks'
+    container:
 
     input:
     tuple val(id), val(partition_size), path(gs_file)
 
     output:
-    tuple val(id), path("*-partition.txt") , emit: gs
+    tuple val(id), path("*.partition") , emit: gs
 
     script:
     """
