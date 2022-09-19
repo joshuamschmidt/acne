@@ -49,7 +49,7 @@ include { ACNE } from './workflows/acne'
 
 // WORKFLOW: Run main acne analysis pipeline
 workflow RUN_ACNE {
-    ACNE ()
+    ACNE (channel.from(params.input))
 }
 
 /*
