@@ -31,15 +31,18 @@ include { PARTITIONGS } from '../modules/local/partition/main'
 */
 
 workflow ACNE {
-  take: data
+  take:
+    data
+    split
+    split_n
 
   main:
-    if (params.split) {
-        if (!params.split_n) {
+    if (split) {
+        if (!split_n) {
         log.error "must inlude n samples to split large GS project"
         exit 1
         }
-        PARTITIONGS(data, params.split_n)
+        PARTITIONGS(data, split_n)
         //split_channel = PARTITIONGS.gs
         //BATCH_CALL(PARTITIONGS.out)
         }
