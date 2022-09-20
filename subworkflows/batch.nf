@@ -5,7 +5,7 @@
 */
 
 include { MAKEPFB        } from '../modules/local/pfb/main'
-//include { SPLITGS        } from '../modules/local/split/main'
+include { SPLITGS        } from '../modules/local/split/main'
 //include { PENNCNV_DETECT } from '../modules/local/detect/main'
 
 
@@ -15,4 +15,5 @@ workflow BATCH_CALL {
 
     main:
     MAKEPFB(gs_file)
+    SPLITGS(gs_file)
 }
