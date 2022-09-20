@@ -7,7 +7,7 @@ process MAKEPFB {
     path(gs_file)
 
     output:
-    path("${gs_file.baseName}.pfb") , emit: pfb
+    tuple val("${gs_file.baseName}"), path("${gs_file.baseName}.pfb")
 
     script:
     """
