@@ -1,7 +1,7 @@
 process PENNCNV_GC {
 
-    container 'genomicslab/penncnv:1.0.5'
-
+    //container 'genomicslab/penncnv:1.0.5'
+    container 'wallen/penncnv:1.0.5'
     input:
     tuple val(subBatch), path(pfb)
     path(gc_file)
@@ -12,7 +12,7 @@ process PENNCNV_GC {
     script:
 
     """
-    perl /root/PennCNV/cal_gc_snp.pl \
+    cal_gc_snp.pl \
     --output "${pfb.baseName}.gc" \
     $gc_file \
     $pfb;
