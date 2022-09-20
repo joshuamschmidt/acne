@@ -37,6 +37,7 @@ log.info """\
  gcModel      : ${params.gc_model}
  hmm          : ${params.hmm}
  split        : ${params.split}
+ split_n        : ${params.split_n}
  outdir       : ${params.outdir}
  """
 
@@ -50,7 +51,7 @@ include { ACNE } from './workflows/acne'
 
 // WORKFLOW: Run main acne analysis pipeline
 workflow RUN_ACNE {
-    ACNE (Channel.fromPath(params.input), params.split, params.split_n)
+    ACNE (Channel.fromPath(params.inputFile), params.split, params.split_n)
 }
 
 /*
