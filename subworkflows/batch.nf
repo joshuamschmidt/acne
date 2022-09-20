@@ -20,5 +20,5 @@ workflow BATCH_CALL {
         .from( pfb_ch )
         .first()
         .set { gc_in_ch }
-    PENNCNV_GC(pfb_ch, gc_in_ch)
+    PENNCNV_GC(gc_in_ch, Channel.fromPath(params.gc_model))
 }
