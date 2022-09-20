@@ -22,7 +22,7 @@ for (param in checkPathParamList) if (param) file(param, checkIfExists: true)
 */
 
 include { PARTITIONGS } from '../modules/local/partition/main'
-//include { BATCH_CALL  } from '../subworkflows/batch'
+include { BATCH_CALL  } from '../subworkflows/batch'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@ workflow ACNE {
         }
         PARTITIONGS(gs_file, split_n)
         //split_channel = PARTITIONGS.gs
-        //BATCH_CALL(PARTITIONGS.out)
+        BATCH_CALL(PARTITIONGS.out.gs)
         }
     //BATCH_CALL(params.runID, ch_input_sample)
     }
