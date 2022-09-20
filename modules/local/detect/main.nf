@@ -7,7 +7,7 @@ process PENNCNV_GC {
     path(gc_file)
 
     output:
-    tuple val(subBatch), path("${pfb.baseName}.gc")
+    path("${pfb.baseName}.gc")
 
     script:
 
