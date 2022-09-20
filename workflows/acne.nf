@@ -32,7 +32,7 @@ include { PARTITIONGS } from '../modules/local/partition/main'
 
 workflow ACNE {
   take:
-    data
+    gs_file
     split
     split_n
 
@@ -42,7 +42,7 @@ workflow ACNE {
         log.error "must inlude n samples to split large GS project"
         exit 1
         }
-        PARTITIONGS(data, split_n)
+        PARTITIONGS(gs_file, split_n)
         //split_channel = PARTITIONGS.gs
         //BATCH_CALL(PARTITIONGS.out)
         }
