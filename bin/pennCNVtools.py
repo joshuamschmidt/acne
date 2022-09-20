@@ -170,12 +170,12 @@ def main():
         data.write_partition_data()
 
     if(tool=='split'):
-        if not args.output:
-            parser.error('pfb tool selected: --output must be specified')
         data = sampleDataSplit(args.input)
         data.write_sample_data()
 
     if(tool=='pfb'):
+        if not args.output:
+            parser.error('pfb tool selected: --output must be specified')
         pfb = pfbObj(args.input)
         pfb.pfb.write_csv(args.output, sep='\t')
 
