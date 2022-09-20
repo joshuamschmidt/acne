@@ -14,7 +14,11 @@ workflow BATCH_CALL {
     gs_file
 
     main:
-    MAKEPFB(gs_file) | set {  pfb_ch }
+    MAKEPFB(gs_file) | flatten | set {  pfb_ch }
     SPLITGS(gs_file)
-    PENNCNV_GC(pfb_ch, Channel.fromPath(params.gc_model))
+    Channel
+        .from( pfb_ch )
+        .first()
+        .set { gc_in_ch }
+    PENNCNV_GC(pfb_ch, gc_in_ch)
 }
