@@ -50,7 +50,7 @@ include { ACNE } from './workflows/acne'
 
 // WORKFLOW: Run main acne analysis pipeline
 workflow RUN_ACNE {
-    ACNE (channel.from(params.input), params.split, params.split_n)
+    ACNE (channel.fromPath(params.input), params.split, params.split_n)
 }
 
 /*
