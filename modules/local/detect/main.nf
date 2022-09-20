@@ -12,7 +12,7 @@ process PENNCNV_GC {
     script:
 
     """
-    cal_gc_snp.pl \
+    /root/PennCNV/cal_gc_snp.pl \
     --output "${pfb.baseName}.gc" \
     $gc_file \
     $pfb;
