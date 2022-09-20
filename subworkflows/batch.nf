@@ -14,10 +14,10 @@ workflow BATCH_CALL {
     gs_file
 
     main:
-    MAKEPFB(gs_file) | flatten | set {  pfb_ch }
+    MAKEPFB(gs_file)
     SPLITGS(gs_file)
     Channel
-        .from( pfb_ch )
+        .from( MAKEPFB.out )
         .first()
         .set { gc_in_ch }
     gc_in_ch.view()
