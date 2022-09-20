@@ -42,9 +42,11 @@ workflow ACNE {
         log.error "must inlude n samples to split large GS project"
         exit 1
         }
-        PARTITIONGS(gs_file, split_n) | BATCH_CALL
-        //split_channel = PARTITIONGS.gs
-        //BATCH_CALL(PARTITIONGS.out.gs)
+        PARTITIONGS(gs_file, split_n)
+        Channel
+            .from(PARTITIONGS.out)
+            .set { split_channel }
+        BATCH_CALL(split_channel)
         }
     //BATCH_CALL(params.runID, ch_input_sample)
     }
