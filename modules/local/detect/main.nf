@@ -1,4 +1,31 @@
+process PENNCNV_GC {
+
+    container 'genomicslab/penncnv:1.0.5'
+
+    input:
+    tuple val(subBatch), path(pfb)
+    path(gc_file)
+
+    output:
+    tuple val(subBatch), path("${pfb.baseName}.gc")
+
+    script:
+
+    """
+    cal_gc_snp.pl \
+    --output "${pfb.baseName}.gc" \
+    $gc_file \
+    $pfb;
+    """
+}
+
+
+
+/*
 process PENNCNV_DETECT {
+
+    container 'genomicslab/penncnv:1.0.5'
+
     publishDir "$params.outdir/logs", pattern: "*.rawcnv.log", mode: 'copy'
     publishDir "$params.outdir/raw_calls", pattern: "*.rawcnv", mode: 'copy'
 
@@ -25,3 +52,4 @@ process PENNCNV_DETECT {
     """
 
 }
+*/
