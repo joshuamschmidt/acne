@@ -8,4 +8,4 @@
 
 `docker push joshmschmidt/penncnvtools:0.0.1`
 
-`singularity build /share/ClusterShare/software/contrib/jossch/singularity_images/illumina_gs_to_cnv:0.0.1  docker://joshmschmidt/illumina_gs_to_cnv:0.0.1`
+`singularity build /share/ClusterShare/software/contrib/jossch/singularity_images/penncnvtools:0.0.1 docker://joshmschmidt/penncnvtools:0.0.1`
