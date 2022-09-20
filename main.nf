@@ -27,6 +27,7 @@ params.runID = ''
 params.gc_model = ''
 params.hmm = ''
 params.split = false
+params.split_n = false
 
 log.info """\
  A C N E - N F   P I P E L I N E
@@ -49,7 +50,7 @@ include { ACNE } from './workflows/acne'
 
 // WORKFLOW: Run main acne analysis pipeline
 workflow RUN_ACNE {
-    ACNE (channel.from(params.input))
+    ACNE (channel.from(params.input), params.split, params.split_n)
 }
 
 /*
