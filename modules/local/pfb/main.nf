@@ -1,13 +1,13 @@
 process MAKEPFB {
     publishDir "$params.outdir/PFB/", pattern: "*.pfb", mode: 'copy'
 
-    label 'pythonTasks'
+    container 'joshmschmidt/penncnvtools:0.0.1'
 
     input:
-    tuple val(id), path(gs_file)
+    path(gs_file)
 
     output:
-    tuple val(id), path("${gs_file.baseName}.pfb") , emit: pfb
+    path("${gs_file.baseName}.pfb") , emit: pfb
 
     script:
     """
