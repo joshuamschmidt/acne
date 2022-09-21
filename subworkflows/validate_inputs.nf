@@ -11,7 +11,7 @@ example include:
 include { GS_INPUT as BWAMEM1_INDEX             } from '../../modules/nf-core/modules/bwa/index/main'
 */
 
-
+include { TABIX_BGZIP } from '../modules/nf-core/modules/tabix/bgzip/main'
 
 process GS_INPUT {
 
