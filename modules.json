@@ -1,6 +1,6 @@
 {
     "name": "acne",
-    "homePage": "https://github.com/nf-core/sarekhttps://github.com/joshuamschmidt/acne",
+    "homePage": "https://github.com/joshuamschmidt/acne",
     "repos": {
         "nf-core/modules": {
             "git_url": "https://github.com/nf-core/modules.git",
