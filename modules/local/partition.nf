@@ -3,14 +3,14 @@ process PARTITIONGS {
     container 'joshmschmidt/penncnvtools:0.0.1'
 
     input:
-    path(gs_file)
+    tuple val(meta), path(gsfile)
     val(partition_size)
 
     output:
-    path '*.partition'
+    tuple val(meta), path '*.partition'
 
     script:
     """
-    pennCNVtools.py partition --input $gs_file --n $partition_size
+    pennCNVtools.py partition --input $gsfile --n $partition_size
     """
 }
