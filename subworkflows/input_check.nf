@@ -22,6 +22,7 @@ workflow INPUT_CHECK {
     SAMPLESHEET_CHECK ( samplesheet )
         .csv
         .splitCsv ( header:true, sep:',' )
+        .view { row -> "${row.id} - ${row.gsfile}" }
         .map { create_gsfile_channel(it) }
         .set { gsfiles }
 
