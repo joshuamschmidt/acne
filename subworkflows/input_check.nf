@@ -11,16 +11,16 @@
 // Check input samplesheet and get gsfile channels
 //
 
-/* TODO
+
     include { SAMPLESHEET_CHECK } from '../../modules/local/samplesheet_check'
-*/
 
 workflow INPUT_CHECK {
     take:
     samplesheet // file: /path/to/samplesheet.csv
 
     main:
-    samplesheet
+    SAMPLESHEET_CHECK ( samplesheet )
+        .csv
         .splitCsv ( header:true, sep:',' )
         .map { create_gsfile_channel(it) }
         .set { gsfiles }
