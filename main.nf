@@ -15,29 +15,29 @@
 */
 
 /*
-this main.nf based on structure of nf-core/sarek: https://github.com/nf-core/sarek/blob/master/main.nf
+this main.nf based on structure of nf-core/sarek: https://github.com/nf-core/sarek/main.nf
+and nf-core/rnaseq: https://github.com/nf-core/rnaseq/main.nf
+
 */
 
 nextflow.enable.dsl=2
 
 // default params
-params.outdir = 'run/'
-params.inputFile = 'inputFile.txt'
-params.runID = ''
-params.gc_model = ''
-params.hmm = ''
-params.split = false
-params.split_n = false
+params.outdir = 'results/'
+params.input = 'sample_sheet.txt'
+params.gc_model = 'assets/hg19.gc5Base.txt.gz'
+params.hmm = 'assets/hh550.hmm'
+params.partition = false
+params.partition_n = false
 
 log.info """\
  A C N E - N F   P I P E L I N E
  ===================================
- input        : ${params.inputFile}
- runID        : ${params.runID}
+ input        : ${params.input}
  gcModel      : ${params.gc_model}
  hmm          : ${params.hmm}
- split        : ${params.split}
- split_n        : ${params.split_n}
+ partition    : ${params.partition}
+ partition_n  : ${params.partition_n}
  outdir       : ${params.outdir}
  """
 
@@ -51,7 +51,7 @@ include { ACNE } from './workflows/acne'
 
 // WORKFLOW: Run main acne analysis pipeline
 workflow RUN_ACNE {
-    ACNE (Channel.fromPath(params.inputFile), params.split, params.split_n)
+    ACNE ()
 }
 
 /*
