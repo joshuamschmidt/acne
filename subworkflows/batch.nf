@@ -4,9 +4,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { MAKEPFB        } from '../modules/local/pfb/main'
-include { SPLITGS        } from '../modules/local/split/main'
-include { PENNCNV_GC     } from '../modules/local/detect/main'
+include { MAKEPFB        } from '../modules/local/make_pfb'
+include { SPLITGS        } from '../modules/local/split_gs'
+include { PENNCNV_GC     } from '../modules/local/penn_gc'
 
 
 workflow BATCH_CALL {
