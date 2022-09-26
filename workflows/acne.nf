@@ -22,7 +22,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 */
 include { INPUT_CHECK  } from '../subworkflows/input_check'
 include { BATCH_CALL   } from '../subworkflows/batch'
-include { PARTITIONGS  } from '../modules/local/partition/main'
+include { PARTITIONGS  } from '../modules/local/partition'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
