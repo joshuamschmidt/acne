@@ -47,7 +47,7 @@ workflow ACNE {
         exit 1
         }
         // PARTITIONGS returns uncompressed
-        PARTITIONGS(TABIX_BGZIP.out, params.partition_n)
+        PARTITIONGS(TABIX_BGZIP.out.output, params.partition_n)
         //| flatten | BATCH_CALL
         //Channel
         //    .from(PARTITIONGS.out)
