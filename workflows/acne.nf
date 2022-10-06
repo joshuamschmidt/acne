@@ -21,7 +21,6 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { INPUT_CHECK  } from '../subworkflows/input_check'
-include { TABIX_BGZIP  } from '../modules/nf-core/modules/tabix/bgzip/main'
 include { BATCH_CALL   } from '../subworkflows/batch'
 include { PARTITIONGS  } from '../modules/local/partition'
 
@@ -33,8 +32,12 @@ include { PARTITIONGS  } from '../modules/local/partition'
 
 workflow ACNE {
 
-    INPUT_CHECK(ch_input)
-    TABIX_BGZIP(INPUT_CHECK.out)
+    INPUT_CHECK( ch_input )
+        .view()
+        .set{ ch_g_input }
+
+    TABIX_BGZIP( ch_g_input )
+        .view()
 
     // big GS files can be partitioned for efficiency
     // 1: partition into batches of size partition_n. (affects PBF and GC model creation steps)
