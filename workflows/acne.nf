@@ -34,7 +34,7 @@ include { PARTITIONGS  } from '../modules/local/partition'
 workflow ACNE {
 
     INPUT_CHECK(ch_input)
-    TABIX_BGZIP(INPUT_CHECK.out.gsfiles)
+    TABIX_BGZIP(INPUT_CHECK.out)
 
     // big GS files can be partitioned for efficiency
     // 1: partition into batches of size partition_n. (affects PBF and GC model creation steps)
@@ -47,7 +47,7 @@ workflow ACNE {
         exit 1
         }
         // PARTITIONGS returns uncompressed
-        PARTITIONGS(TABIX_BGZIP.output, params.partition_n)
+        PARTITIONGS(TABIX_BGZIP.out, params.partition_n)
         //| flatten | BATCH_CALL
         //Channel
         //    .from(PARTITIONGS.out)
