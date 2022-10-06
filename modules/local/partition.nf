@@ -7,10 +7,13 @@ process PARTITIONGS {
     val(partition_size)
 
     output:
-    tuple val(meta), path '*.partition'
+    tuple val(meta), path("${prefix}*"), emit:
     //path '*.partition'
 
     script:
+    def args = task.ext.args ?: ''
+    prefix   = task.ext.prefix ?: "${meta.id}"
+
     """
     pennCNVtools.py partition --input $gsfile --n $partition_size
     """

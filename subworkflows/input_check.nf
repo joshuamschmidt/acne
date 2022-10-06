@@ -13,6 +13,7 @@
 
 
 include { SAMPLESHEET_CHECK } from '../modules/local/samplesheet_check'
+include { TABIX_BGZIP  } from '../modules/nf-core/modules/tabix/bgzip/main'
 
 workflow INPUT_CHECK {
     take:
@@ -22,12 +23,13 @@ workflow INPUT_CHECK {
     SAMPLESHEET_CHECK ( samplesheet )
         .csv
         .splitCsv ( header:true, sep:',' )
-        .view { row -> "${row.id} - ${row.gsfile}" }
         .map { create_gsfile_channel(it) }
-        .set { gsfiles }
+        .set { rawfiles }
+
+    TABIX_BGZIP(rawfiles)
 
     emit:
-    gsfiles                                           // channel: [ val(meta), [ gsfile ] ]
+    gsfiles =  TABIX_BGZIP.out.output  // channel: [ val(meta), [ gsfile ] ]
     // TODO versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
 }
 
