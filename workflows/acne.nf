@@ -21,7 +21,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { INPUT_CHECK  } from '../subworkflows/input_check'
-include { TABIX_BGZIP  } from '../modules/nf-core/tabix/bgzip/main'
+include { TABIX_BGZIP  } from '../modules/nf-core/modules/tabix/bgzip/main'
 include { BATCH_CALL   } from '../subworkflows/batch'
 include { PARTITIONGS  } from '../modules/local/partition'
 
