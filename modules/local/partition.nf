@@ -7,8 +7,8 @@ process PARTITIONGS {
     val(partition_size)
 
     output:
-    //tuple val(meta), path '*.partition'
-    path '*.partition'
+    tuple val(meta), path '*.partition'
+    //path '*.partition'
 
     script:
     """
