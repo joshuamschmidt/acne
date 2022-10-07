@@ -9,6 +9,6 @@ process SPLITGS {
 
     script:
     """
-    pennCNVtools.py split --input $gs_file
+    pennCNVtools.py split --input $gsfile
     """
 }
