@@ -69,6 +69,7 @@ workflow ACNE {
 
         PENNCNV_GC.out.output
             .cross(MAKEPFB.out.output)
+            .groupTuple(size=2)
             .view()
 
 
