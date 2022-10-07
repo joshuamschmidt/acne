@@ -48,7 +48,8 @@ workflow ACNE {
         exit 1
         }
         // PARTITIONGS returns uncompressed
-        //PARTITIONGS(ch_g_input.out.gsfiles, params.partition_n)
+        PARTITIONGS(ch_g_input.out.gsfiles, params.partition_n)
+            .view()
         //| flatten | BATCH_CALL
         //Channel
         //    .from(PARTITIONGS.out)
