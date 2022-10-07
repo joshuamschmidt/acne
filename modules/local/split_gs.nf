@@ -2,10 +2,10 @@ process SPLITGS {
     container 'joshmschmidt/penncnvtools:0.0.1'
 
     input:
-    path(gs_file)
+    tuple val(meta), path(gsfile)
 
     output:
-    tuple val("${gs_file.baseName}"), path("*.txt")
+    tuple val(meta), path("*"), emit: output
 
     script:
     """
