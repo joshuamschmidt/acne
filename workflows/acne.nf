@@ -70,7 +70,7 @@ workflow ACNE {
 
         PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
 
-        ch_post_split.join(MAKEPFB.out.output).take( 3 ).view()
+        ch_post_split.cross(MAKEPFB.out.output).take( 3 ).view()
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
