@@ -62,15 +62,21 @@ workflow ACNE {
             }
             .set { ch_pre_split }
 
+        // pfb and gcmodel files, unique to each subbatch instantiated by PARTITIONGS
+        MAKEPFB( ch_pre_split )
+
+        PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
+            .out.output.cross(MAKEPFB.out.output)
+            .view()
+
+
+        //
         SPLITGS( ch_pre_split )
             .transpose()
             .set { ch_post_split }
 
-        MAKEPFB( ch_pre_split )
 
-        PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
-
-        ch_post_split.cross(MAKEPFB.out.output).take( 3 ).view()
+        //ch_post_split.cross(MAKEPFB.out.output).view()
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
