@@ -11,7 +11,7 @@ process MAKEPFB {
 
     script:
     """
-    pennCNVtools.py pfb --input $gs_file \
+    pennCNVtools.py pfb --input $gsfile \
     --output "${gsfile.baseName}.pfb"
     """
 }
