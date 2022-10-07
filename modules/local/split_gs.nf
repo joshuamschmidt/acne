@@ -5,7 +5,7 @@ process SPLITGS {
     tuple val(meta), path(gsfile)
 
     output:
-    tuple val(meta), path("*"), emit: output
+    tuple val(meta), path("*.txt"), emit: output
 
     script:
     """
