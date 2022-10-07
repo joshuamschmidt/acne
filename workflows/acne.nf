@@ -23,6 +23,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 include { INPUT_CHECK  } from '../subworkflows/input_check'
 include { BATCH_CALL   } from '../subworkflows/batch'
 include { PARTITIONGS  } from '../modules/local/partition'
+include { SPLITGS  } from '../modules/local/split_gs'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,8 +45,8 @@ workflow ACNE {
     // note also that splitting uses python polars - so more efficient using uncompressed input
     if (params.partition) {
         if (!params.partition_n) {
-        log.error "must inlude n samples to split large GS project"
-        exit 1
+            log.error "must inlude n samples to split large GS project"
+            exit 1
         }
         // PARTITIONGS returns uncompressed
         PARTITIONGS(INPUT_CHECK.out.gsfiles, params.partition_n)
@@ -57,12 +58,15 @@ workflow ACNE {
                 meta_clone.id=meta_clone.id+'_'+parition_suffix
                 [ meta_clone, partition ]
             }
+            .set { ch_pre_split }
+
+        SPLITGS( ch_pre_split )
+            .transpose()
             .view()
-        //| flatten | BATCH_CALL
-        //Channel
-        //    .from(PARTITIONGS.out)
-        //    .set { split_channel }
-        //BATCH_CALL(split_channel)
-        }
-    //BATCH_CALL(params.runID, ch_input_sample)
+
+    } else {
+        SPLITGS( INPUT_CHECK.out.gsfiles )
+
     }
+    //BATCH_CALL(params.runID, ch_input_sample)
+}
