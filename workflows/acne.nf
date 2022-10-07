@@ -23,7 +23,8 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 include { INPUT_CHECK  } from '../subworkflows/input_check'
 include { BATCH_CALL   } from '../subworkflows/batch'
 include { PARTITIONGS  } from '../modules/local/partition'
-include { SPLITGS  } from '../modules/local/split_gs'
+include { SPLITGS      } from '../modules/local/split_gs'
+include { MAKEPFB      } from '../modules/local/make_pfb'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,6 +64,7 @@ workflow ACNE {
         SPLITGS( ch_pre_split )
             .transpose()
             .view()
+        MAKEPFB ( ch_pre_split )
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
