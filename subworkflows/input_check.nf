@@ -13,7 +13,7 @@
 
 
 include { SAMPLESHEET_CHECK } from '../modules/local/samplesheet_check'
-include { TABIX_BGZIP  } from '../../modules/nf-core/modules/tabix/bgzip/main'
+include { TABIX_BGZIP  } from '../modules/nf-core/modules/tabix/bgzip/main'
 
 workflow INPUT_CHECK {
     take:
