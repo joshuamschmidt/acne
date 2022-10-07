@@ -50,6 +50,12 @@ workflow ACNE {
         // PARTITIONGS returns uncompressed
         PARTITIONGS(INPUT_CHECK.out.gsfiles, params.partition_n)
             .transpose()
+            .map {
+                meta, partition ->
+                parition_suffix = partition.baseName.split('-').last()
+                meta.id=meta.id+'_'+parition_suffix
+                [ meta, partition ]
+            }
             .view()
         //| flatten | BATCH_CALL
         //Channel
