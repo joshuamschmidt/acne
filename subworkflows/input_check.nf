@@ -48,7 +48,6 @@ def create_gsfile_channel(LinkedHashMap row) {
         exit 1, "ERROR: Please check input samplesheet -> Genome Studio file does not exist!\n${row.gsfile}"
     } else {
         gsfile_meta = tuple(meta, file(row.gsfile))
-        //[ meta, [ file(row.gsfile) ] ]
     }
     return gsfile_meta
 }
