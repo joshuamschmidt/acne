@@ -63,7 +63,7 @@ workflow ACNE {
 
         SPLITGS( ch_pre_split )
             .transpose()
-            .view()
+
         MAKEPFB ( ch_pre_split )
 
     } else {
