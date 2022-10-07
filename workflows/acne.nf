@@ -52,10 +52,12 @@ workflow ACNE {
             .transpose()
             .map {
                 meta, partition ->
+                def meta_clone = meta.clone()
                 parition_suffix = partition.baseName.split('-').last()
-                meta.id=meta.id+'_'+parition_suffix
-                [ meta, partition ]
+                meta_clone.id=meta_clone.id+'_'+parition_suffix
+                [ meta_clone, partition ]
             }
+            .groupTuple(by: [0])
             .view()
         //| flatten | BATCH_CALL
         //Channel
