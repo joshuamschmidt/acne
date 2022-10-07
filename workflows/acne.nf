@@ -33,8 +33,8 @@ include { PARTITIONGS  } from '../modules/local/partition'
 workflow ACNE {
 
     INPUT_CHECK( ch_input )
-        .view()
-        .set{ ch_g_input }
+        //.view()
+        //.set{ ch_g_input }
 
 
     // big GS files can be partitioned for efficiency
@@ -48,7 +48,7 @@ workflow ACNE {
         exit 1
         }
         // PARTITIONGS returns uncompressed
-        PARTITIONGS(ch_g_input.gsfiles, params.partition_n)
+        PARTITIONGS(INPUT_CHECK.out.gsfiles, params.partition_n)
             .view()
         //| flatten | BATCH_CALL
         //Channel
