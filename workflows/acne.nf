@@ -64,11 +64,13 @@ workflow ACNE {
 
         SPLITGS( ch_pre_split )
             .transpose()
+            .set { ch_post_split }
 
         MAKEPFB( ch_pre_split )
 
         PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
 
+        ch_post_split.join(MAKEPFB.out.output).take( 3 ).view()
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
