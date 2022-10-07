@@ -51,3 +51,11 @@ def create_gsfile_channel(LinkedHashMap row) {
     }
     return gsfile_meta
 }
+
+def create_partition_channel( ) {
+    // create meta map
+    def meta = [:]
+    meta.id  = row.id
+
+
+}
