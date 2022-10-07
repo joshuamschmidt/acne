@@ -57,7 +57,6 @@ workflow ACNE {
                 meta_clone.id=meta_clone.id+'_'+parition_suffix
                 [ meta_clone, partition ]
             }
-            .groupTuple(by: [0])
             .view()
         //| flatten | BATCH_CALL
         //Channel
