@@ -66,7 +66,9 @@ workflow ACNE {
         MAKEPFB( ch_pre_split )
 
         PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
-            .out.output.cross(MAKEPFB.out.output)
+
+        PENNCNV_GC.out.output
+            .cross(MAKEPFB.out.output)
             .view()
 
 
