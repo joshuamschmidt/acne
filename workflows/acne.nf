@@ -25,6 +25,7 @@ include { BATCH_CALL   } from '../subworkflows/batch'
 include { PARTITIONGS  } from '../modules/local/partition'
 include { SPLITGS      } from '../modules/local/split_gs'
 include { MAKEPFB      } from '../modules/local/make_pfb'
+include { PENNCNV_GC   } from '../modules/local/penn_gc'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -64,7 +65,10 @@ workflow ACNE {
         SPLITGS( ch_pre_split )
             .transpose()
 
-        MAKEPFB ( ch_pre_split )
+        MAKEPFB( ch_pre_split )
+
+        PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
+
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
