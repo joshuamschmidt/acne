@@ -51,8 +51,6 @@ workflow ACNE {
         PARTITIONGS(INPUT_CHECK.out.gsfiles, params.partition_n)
             .transpose()
             .view()
-            .countBy()
-            .view()
         //| flatten | BATCH_CALL
         //Channel
         //    .from(PARTITIONGS.out)
