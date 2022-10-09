@@ -6,4 +6,6 @@ results/
 .DS_Store
 testing/
 testing*
+assets/*
 *.pyc
+*tmp*
