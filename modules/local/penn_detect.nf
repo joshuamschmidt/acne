@@ -19,7 +19,6 @@ process PENNCNV_DETECT {
     """
     detect_cnv.pl \
     -test \
-    --loh \
     --confidence \
     --hmmfile $hmm \
     --pfbfile $pfb \
