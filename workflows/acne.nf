@@ -30,7 +30,8 @@ include { PENNCNV_DETECT } from '../modules/local/penn_detect'
 include { PENNCNV_MERGE  } from '../modules/local/penn_merge'
 include { CONCATENATE_PENN_CALLS  } from '../modules/local/concatenate_penn_calls.nf'
 include { CONCATENATE_PENN_LOGS   } from '../modules/local/concatenate_penn_logs.nf'
-
+include { PENNCNV_FILTER     } from '../modules/local/penn_filter.nf'
+include { CONCATENATE_PARTITIONS } from '../modules/local/concatenate_partitions.nf' 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -58,8 +59,10 @@ workflow ACNE {
             .map {
                 meta, partition ->
                 def meta_clone = meta.clone()
-                parition_suffix = partition.baseName.split('-').last()
-                meta_clone.id=meta_clone.id+'_'+parition_suffix
+                partition_suffix = partition.baseName.split('-').last()
+                meta_clone.sampleID = meta_clone.id
+                meta_clone.partition = partition_suffix
+                meta_clone.id=meta_clone.id+'_'+partition_suffix
                 [ meta_clone, partition ]
             }
             .set { ch_pre_split }
@@ -114,6 +117,25 @@ workflow ACNE {
 
         PENNCNV_MERGE( ch_merge_cat_calls )
 
+        PENNCNV_MERGE.out.output
+            .combine(CONCATENATE_PENN_LOGS.out.output, by: 0)
+            .set{ ch_pre_filter }
+
+        PENNCNV_FILTER( ch_pre_filter ) 
+        
+        PENNCNV_FILTER.out.output
+            .map{
+                meta, cnv, qcpass, qcsum ->  
+                def meta_clone = meta.clone()
+                meta_clone.id = meta_clone.sampleID
+                meta_clone.remove("partition")
+                meta_clone.remove("sampleID")
+                [ meta_clone, cnv, qcpass, qcsum ]
+                }
+            .groupTuple(by: 0)
+            .view()
+            .set{ ch_post_filter }
+        CONCATENATE_PARTITIONS( ch_post_filter )
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
