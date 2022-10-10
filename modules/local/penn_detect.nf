@@ -11,8 +11,8 @@ process PENNCNV_DETECT {
     path(hmm)
 
     output:
-    path "${input.baseName}.rawcnv", emit: penn_cnv_raw
-    path "${input.baseName}.rawcnv.log", emit: cnv_log
+    tuple val(meta), path ("${input.baseName}.rawcnv"),         emit: raw_call
+    tuple val(meta), path ("${input.baseName}.rawcnv.log"),     emit: raw_log
     
     script:
 
@@ -23,10 +23,10 @@ process PENNCNV_DETECT {
     --confidence \
     --hmmfile $hmm \
     --pfbfile $pfb \
-    --logfile ${input.baseName}.rawcnv.log
+    $input \
+    --logfile ${input.baseName}.rawcnv.log \
     --gcmodelfile $gc_model \
-    --output  ${input.baseName}.rawcnv \
-    $input;
+    --output ${input.baseName}.rawcnv;
     """
 
 }
