@@ -20,12 +20,13 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { INPUT_CHECK  } from '../subworkflows/input_check'
-include { BATCH_CALL   } from '../subworkflows/batch'
-include { PARTITIONGS  } from '../modules/local/partition'
-include { SPLITGS      } from '../modules/local/split_gs'
-include { MAKEPFB      } from '../modules/local/make_pfb'
-include { PENNCNV_GC   } from '../modules/local/penn_gc'
+include { INPUT_CHECK    } from '../subworkflows/input_check'
+include { BATCH_CALL     } from '../subworkflows/batch'
+include { PARTITIONGS    } from '../modules/local/partition'
+include { SPLITGS        } from '../modules/local/split_gs'
+include { MAKEPFB        } from '../modules/local/make_pfb'
+include { PENNCNV_GC     } from '../modules/local/penn_gc'
+include { PENNCNV_DETECT } from '../modules/local/penn_detect'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,18 +69,29 @@ workflow ACNE {
         PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
 
         PENNCNV_GC.out.output
-            .cross(MAKEPFB.out.output)
-            .groupTuple(size: 2)
-            .view()
+            .join(MAKEPFB.out.output)
+            .map{
+                meta, gc_files, pfb_files ->
+                [ meta, gc_files, pfb_files ]
+            }
+            .set { ch_gc_pfb }
 
 
-        //
+        //          
         SPLITGS( ch_pre_split )
             .transpose()
             .set { ch_post_split }
 
 
-        //ch_post_split.cross(MAKEPFB.out.output).view()
+        ch_post_split
+            .combine( ch_gc_pfb, by: 0 )
+            .view()
+            .set{ ch_pre_penn_call }
+            //.map{
+            //    meta, split_files, gc_pfb_files ->
+            //    [ meta, split_files.flatten(), gc_pfb_files ]
+            //}
+            //.view()
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
