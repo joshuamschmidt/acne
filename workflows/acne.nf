@@ -27,6 +27,9 @@ include { SPLITGS        } from '../modules/local/split_gs'
 include { MAKEPFB        } from '../modules/local/make_pfb'
 include { PENNCNV_GC     } from '../modules/local/penn_gc'
 include { PENNCNV_DETECT } from '../modules/local/penn_detect'
+include { PENNCNV_MERGE  } from '../modules/local/penn_merge'
+include { CONCATENATE_PENN_CALLS  } from '../modules/local/concatenate_penn_calls.nf'
+include { CONCATENATE_PENN_LOGS   } from '../modules/local/concatenate_penn_logs.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,8 +40,6 @@ include { PENNCNV_DETECT } from '../modules/local/penn_detect'
 workflow ACNE {
 
     INPUT_CHECK( ch_input )
-        //.view()
-        //.set{ ch_g_input }
 
 
     // big GS files can be partitioned for efficiency
@@ -76,22 +77,43 @@ workflow ACNE {
             }
             .set { ch_gc_pfb }
 
-
         //          
         SPLITGS( ch_pre_split )
             .transpose()
             .set { ch_post_split }
 
-
+        // now merge ind split, pfb and gc files
         ch_post_split
             .combine( ch_gc_pfb, by: 0 )
-            .view()
             .set{ ch_pre_penn_call }
-            //.map{
-            //    meta, split_files, gc_pfb_files ->
-            //    [ meta, split_files.flatten(), gc_pfb_files ]
-            //}
-            //.view()
+            
+        PENNCNV_DETECT( ch_pre_penn_call, params.hmm)
+        
+        /* 
+        cleanup of raw calls post ind calls
+        can concatenate rawcnv files to make one file per sub-batch/partition.
+        NB: Still need batch speific pfb for merging adjacebt CNV calls
+        */
+        // cat calls
+        PENNCNV_DETECT.out.raw_call
+            .groupTuple(by: 0)
+            .set { ch_pre_cat_calls }
+        
+        CONCATENATE_PENN_CALLS( ch_pre_cat_calls )
+        // cat logs
+        PENNCNV_DETECT.out.raw_log
+            .groupTuple(by: 0)
+            .set { ch_pre_cat_logs }
+        
+        CONCATENATE_PENN_LOGS( ch_pre_cat_logs )
+        
+        // merge split calls
+        CONCATENATE_PENN_CALLS.out.output
+            .combine(MAKEPFB.out.output, by: 0)
+            .set{ ch_merge_cat_calls}
+
+        PENNCNV_MERGE( ch_merge_cat_calls )
+
 
     } else {
         SPLITGS( INPUT_CHECK.out.gsfiles )
