@@ -22,7 +22,8 @@ python polars is used for all steps involving the raw GS output. Using optimised
 duplicate col names are very problematic. If present causes kernal panic and job failure. In the future, will  
 add a process to check format of GS file. Ideally, one could also update the col names e.g. "sample_X and sample_X-DUP"  
 
-Find that there are many NaN values in PFB files - presumably this is because high number of missing genotypes?
+Find that there are many NaN values in PFB files - presumably this is because high number of missing genotypes? the GS python scripts
+should probably take of care of this, and filter to 95% or 98% genotyping rate. And create a report with the filtered SNPs?
 
 polars is also a hungry mofo - and will consume more cpus than requested if able to.  
 Look into setting relevant env var to stop this.
