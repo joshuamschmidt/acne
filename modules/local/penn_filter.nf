@@ -22,7 +22,6 @@ process PENNCNV_FILTER {
     --qclrrsd 0.3 \
     --qcbafdrift 0.01 \
     --qcwf 0.05 \
-    --qcnumcnv 100 \
     -qcpassout ${prefix}.qcpass \
     -qcsumout ${prefix}.qcsum \
     -out ${prefix}.filteredcnv;
