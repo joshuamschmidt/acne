@@ -1,5 +1,5 @@
 process PENNCNV_FILTER {
-
+    tag "$meta.id"
     //container 'genomicslab/penncnv:latest'
     container 'wallen/penncnv:1.0.5'
 
