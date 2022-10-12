@@ -11,8 +11,13 @@ nf pipeline for CNV analysis of genotype array data
 Using....
 
 ```
-export NXF_OPTS="-Xms24G -Xmx24G -Dnxf.pool.maxThreads=2000"
-nextflow run ./main.nf -resume -profile garvan --input data/anzrag_sample_sheet.txt --partition true --partition_n 300 --hmm /share/ScratchGeneral/jossch/array_cnv/acne/assets/hh550.hmm --gc_model /share/ScratchGeneral/jossch/array_cnv/acne/assets/hg19.gc5Base.txt
+export NXF_OPTS="-Xms8G -Xmx4G -Dnxf.pool.maxThreads=2000"
+
+nextflow run ./main.nf -resume -profile garvan \
+--input data/anzrag_sample_sheet.txt --partition true \
+--partition_n 300 \
+--hmm /share/ScratchGeneral/jossch/array_cnv/acne/assets/hh550.hmm \
+--gc_model /share/ScratchGeneral/jossch/array_cnv/acne/assets/hg19.gc5Base.txt
 ```
 
 
@@ -27,4 +32,4 @@ The PENN CNV detect process is called per ind sample. Each of these jobs takes ~
 
 Ind sample outputs do not have batch, job ID etc identifiers appended as prefix/suffix nor are stored in batch/id specific subfolders.  
 This should change! have now added prefix to ind split files.
-Will need to update persample meta data to make it ind sample specific.
+Will need to update per sample meta data to make it ind sample specific.
