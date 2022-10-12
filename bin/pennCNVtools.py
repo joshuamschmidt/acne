@@ -196,14 +196,9 @@ class pfbObj():
             "Name",
             "Position",
             "Chr",
-            "BAF",
             pl.when(pl.col("Name").str.contains("cnv|CNV")).then(pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
             ])
-        self.pfb = s.select([
-            "Name",
-            "Position",
-            "Chr",
-            "PFB"])
+        self.pfb = s
 
 def main():
     args = parser.parse_args()
