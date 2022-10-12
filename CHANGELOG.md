@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- added --geno option to set filtering criteria of SNPs in calculation of PFB file
 ### Fixed
 
 ## [0.0.2] - 2022-10-12
