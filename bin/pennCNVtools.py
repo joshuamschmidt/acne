@@ -63,6 +63,10 @@ optional.add_argument('--n', type=int, dest='n_per_partition',
                       help='how many inds should large input be split into',
                       default=None)
 
+optional.add_argument('--prefix', type=str, dest='prefix',
+                      help='batch prefix to attach to ind sample files when splitting',
+                      default=None)
+
 
 #----- class defs
 
@@ -118,8 +122,9 @@ class sampleDataPartition():
 
 # '''class for data to split by ind'''
 class sampleDataSplit():
-    def __init__(self, input: str,):
+    def __init__(self, input: str, prefix: str):
         self.input = input
+        self.prefix = prefix
         self.df = []
         self.load_data()
         self.samples= []
@@ -137,7 +142,7 @@ class sampleDataSplit():
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
             sub=self.df.select(["Name", col_1, col_2, col_3])
-            sub.write_csv(s+'.txt', sep='\t')
+            sub.write_csv(self.prefix+'_'+s+'.txt', sep='\t')
 
 
 # '''class for GtLogRBaf to pfb'''
@@ -208,7 +213,7 @@ def main():
         data.write_partition_data()
 
     if(tool=='split'):
-        data = sampleDataSplit(args.input)
+        data = sampleDataSplit(args.input, args.prefix)
         data.write_sample_data()
 
     if(tool=='pfb'):

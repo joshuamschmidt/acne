@@ -9,9 +9,9 @@ process SPLITGS {
 
     script:
     prefix   = task.ext.prefix ?: "${meta.id}"
-    
+
     """
     export POLARS_MAX_THREADS=${task.cpus}
-    pennCNVtools.py split --input $gsfile
+    pennCNVtools.py split --input $gsfile --prefix $prefix
     """
 }
