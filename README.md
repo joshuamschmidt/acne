@@ -27,4 +27,4 @@ The PENN CNV detect process is called per ind sample. Each of these jobs takes ~
 
 Ind sample outputs do not have batch, job ID etc identifiers appended as prefix/suffix nor are stored in batch/id specific subfolders.  
 This should change! have now added prefix to ind split files.
-Will need to update persmaple meta data to make it ind sample specific.
+Will need to update persample meta data to make it ind sample specific.
