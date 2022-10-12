@@ -144,23 +144,61 @@ class sampleDataSplit():
 class pfbObj():
     def __init__(self, input: str,):
         self.input = input
+        self.clean_cols = []
+        self.make_clean_cols()
         self.get_pfb()
+
+    def make_clean_cols(self):
+        with open(self.input) as f:
+            cols=f.readline().rstrip().split("\t")
+            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+            f.close()
+
     def get_pfb(self):
         q = (
-            pl.scan_csv(self.input, sep='\t')
-            .select(["Name", "Chr", "Position", pl.col("^*.GType$")])
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            .select([pl.col("^*.B Allele Freq$")])
             .with_columns([
-                pl.sum(pl.all().exclude(["Name", "Chr", "Position"]) == "AA").alias('ref'),
-                pl.sum(pl.all().exclude(["Name", "Chr", "Position"]) == "AB").alias('het'),
-                pl.sum(pl.all().exclude(["Name", "Chr", "Position"]) == "BB").alias('alt'),
+                pl.sum(pl.all().is_nan()).alias('n_miss'),
+                pl.sum(pl.all().is_not_nan()).alias('n_call')
+                ])
+            .fill_nan(0)
+            .with_columns([
+                pl.fold(acc=pl.lit(0),
+                f=lambda acc, x: acc + x, exprs=pl.col("*")).alias("sum")
                 ])
             .with_columns([
-                ( (pl.col("het") + (pl.col("alt")*2)) / ((pl.col("ref") + pl.col("het") + pl.col("alt")) * 2)).alias("PFB")
+                ( (pl.col("sum") - pl.col("n_miss") - pl.col("n_call") ) / pl.col("n_call")).alias("mean")
                 ])
-            .select(["Name", "Chr", "Position","PFB"])
+            .fill_nan(0)
+            .with_columns([
+                ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
+                ])
+            .select(["BAF","n_miss","n_call"])
             )
-        df = q.collect()
-        self.pfb = df
+        df1 = q.collect()
+        r = (
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: new_cols)
+            .select(["Name","Position","Chr"])
+            )
+        df2=r.collect()
+        s = pl.concat(
+            [df2, df1],
+            how="horizontal",
+            )
+        s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < 0.02)
+        s=s.select([
+            "Name",
+            "Position",
+            "Chr",
+            "BAF",
+            pl.when(pl.col("Name").str.contains("cnv|CNV")).then(pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
+            ])
+        self.pfb = s.select([
+            "Name",
+            "Position",
+            "Chr",
+            "PFB"])
 
 def main():
     args = parser.parse_args()
