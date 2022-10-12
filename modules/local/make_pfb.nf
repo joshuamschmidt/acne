@@ -1,6 +1,7 @@
 process MAKEPFB {
+    tag "$meta.id"
     publishDir "$params.outdir/PFB/", pattern: "*.pfb", mode: 'copy'
-
+    
     container 'joshmschmidt/penncnvtools:0.0.1'
 
 

@@ -1,5 +1,5 @@
 process PARTITIONGS {
-
+    tag "$meta.id"
     container 'joshmschmidt/penncnvtools:0.0.1'
 
     input:
