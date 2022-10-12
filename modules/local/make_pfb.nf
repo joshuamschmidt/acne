@@ -3,6 +3,7 @@ process MAKEPFB {
 
     container 'joshmschmidt/penncnvtools:0.0.1'
 
+
     input:
     tuple val(meta), path(gsfile)
 
@@ -11,6 +12,7 @@ process MAKEPFB {
 
     script:
     """
+    export POLARS_MAX_THREADS=${task.cpus}
     pennCNVtools.py pfb --input $gsfile \
     --output "${gsfile.baseName}.pfb"
     """

@@ -8,7 +8,10 @@ process SPLITGS {
     tuple val(meta), path("*.txt"), emit: output
 
     script:
+    prefix   = task.ext.prefix ?: "${meta.id}"
+    
     """
+    export POLARS_MAX_THREADS=${task.cpus}
     pennCNVtools.py split --input $gsfile
     """
 }

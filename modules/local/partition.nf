@@ -15,6 +15,7 @@ process PARTITIONGS {
     prefix   = task.ext.prefix ?: "${meta.id}"
 
     """
+    export POLARS_MAX_THREADS=${task.cpus}
     pennCNVtools.py partition --input $gsfile --n $partition_size
     """
 }
