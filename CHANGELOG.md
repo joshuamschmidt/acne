@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Fixed
 
+## [0.0.2] - 2022-10-12
+
+### Added 
+
+- Now PFB calculation is approx the same as PENN-CNV perl scripts,
+  but with(hopefully) more performant polars code. 
+
 ## [0.0.1] - 2022-10-10
 
 ### Added
