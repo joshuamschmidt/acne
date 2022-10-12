@@ -67,6 +67,9 @@ optional.add_argument('--prefix', type=str, dest='prefix',
                       help='batch prefix to attach to ind sample files when splitting',
                       default=None)
 
+optional.add_argument('--geno', type=float, dest='geno',
+                      help='SNPs/markers with missingness fraction more than this are excluded from PFB',
+                      default=0.02)
 
 #----- class defs
 
@@ -147,8 +150,9 @@ class sampleDataSplit():
 
 # '''class for GtLogRBaf to pfb'''
 class pfbObj():
-    def __init__(self, input: str,):
+    def __init__(self, input: str, geno: float,):
         self.input = input
+        self.geno = geno
         self.clean_cols = []
         self.make_clean_cols()
         self.get_pfb()
@@ -191,7 +195,7 @@ class pfbObj():
             [df2, df1],
             how="horizontal",
             )
-        s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < 0.02)
+        s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
         s=s.select([
             "Name",
             "Position",
@@ -214,7 +218,7 @@ def main():
     if(tool=='pfb'):
         if not args.output:
             parser.error('pfb tool selected: --output must be specified')
-        pfb = pfbObj(args.input)
+        pfb = pfbObj(args.input, args.geno)
         pfb.pfb.write_csv(args.output, sep='\t')
 
 
