@@ -165,7 +165,9 @@ class pfbObj():
 
     def get_pfb(self):
         q = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, row_count_name='q_n')
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            .sort([
+                pl.col("Chr"), pl.col("Position")],)
             .select([pl.col("^*.B Allele Freq$")])
             .with_columns([
                 pl.sum(pl.all().is_nan()).alias('n_miss'),
@@ -183,12 +185,15 @@ class pfbObj():
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
                 ])
-            .select(['q_n',"BAF","n_miss","n_call"])
+            .select(["BAF","n_miss","n_call"])
             )
         df1 = q.collect()
         r = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, row_count_name='r_n')
-            .select(['r_n',"Name","Position","Chr"])
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            .select(["Name","Position","Chr"])
+            .sort([
+                pl.col("Chr"), pl.col("Position")],
+                )
             )
         df2=r.collect()
         
