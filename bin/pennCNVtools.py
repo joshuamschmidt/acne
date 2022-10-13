@@ -187,7 +187,7 @@ class pfbObj():
             )
         df1 = q.collect()
         r = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: new_cols)
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
             .select(["Name","Position","Chr"])
             )
         df2=r.collect()
