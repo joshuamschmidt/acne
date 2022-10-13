@@ -79,6 +79,8 @@ class sampleDataPartition():
         self.input = input
         self.target_n = target_n
         self.df = []
+        self.clean_cols = []
+        self.make_clean_cols()
         self.load_data()
         self.samples= []
         self.get_samples()
@@ -86,9 +88,20 @@ class sampleDataPartition():
         self.n_per_partition=[]
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
+    
+    def make_clean_cols(self):
+        with open(self.input) as f:
+            cols=f.readline().rstrip().split("\t")
+            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+            f.close()
 
     def load_data(self):
-        q = pl.scan_csv(self.input, sep='\t')
+        q = (
+            pl.scan_csv(self.input, sep='\t')
+            .sort([
+                pl.col("Chr"), pl.col("Position")],
+                )
+        )
         self.df = q.collect()
     
     def get_samples(self):
@@ -128,13 +141,26 @@ class sampleDataSplit():
     def __init__(self, input: str, prefix: str):
         self.input = input
         self.prefix = prefix
+        self.clean_cols = []
+        self.make_clean_cols()
         self.df = []
         self.load_data()
         self.samples= []
         self.get_samples()
+    
+    def make_clean_cols(self):
+        with open(self.input) as f:
+            cols=f.readline().rstrip().split("\t")
+            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+            f.close()
 
     def load_data(self):
-        q = pl.scan_csv(self.input, sep='\t')
+        q = (
+            pl.scan_csv(self.input, sep='\t')
+            .sort([
+                pl.col("Chr"), pl.col("Position")],
+                )
+        )
         self.df = q.collect()
     
     def get_samples(self):
