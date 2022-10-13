@@ -170,7 +170,7 @@ class sampleDataSplit():
     def write_sample_data(self):
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
-            sub=self.df.select(["Name", col_1, col_2, col_3])
+            sub=self.df.select(["Name","Chr","Position", col_1, col_2, col_3])
             sub.write_csv(self.prefix+'_'+s+'.txt', sep='\t')
 
 
@@ -216,7 +216,7 @@ class pfbObj():
         df1 = q.collect()
         r = (
             pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
-            .select(["Name","Position","Chr"])
+            .select(["Name","Chr","Position"])
             .sort([
                 pl.col("Chr"), pl.col("Position")],
                 )
@@ -227,12 +227,11 @@ class pfbObj():
             [df2, df1],
             how="horizontal",
             )
-        s=s.filter(pl.col("q_n")==pl.col("r_n"))
         s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
         s=s.select([
             "Name",
-            "Position",
             "Chr",
+            "Position",
             pl.when(pl.col("Name").str.contains("cnv|CNV")).then(pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
             ])
         self.pfb = s
