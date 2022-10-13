@@ -165,7 +165,7 @@ class pfbObj():
 
     def get_pfb(self):
         q = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, row_count_name='q_n')
             .select([pl.col("^*.B Allele Freq$")])
             .with_columns([
                 pl.sum(pl.all().is_nan()).alias('n_miss'),
@@ -183,18 +183,20 @@ class pfbObj():
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
                 ])
-            .select(["BAF","n_miss","n_call"])
+            .select(['q_n',"BAF","n_miss","n_call"])
             )
         df1 = q.collect()
         r = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
-            .select(["Name","Position","Chr"])
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, row_count_name='r_n')
+            .select(['r_n',"Name","Position","Chr"])
             )
         df2=r.collect()
+        
         s = pl.concat(
             [df2, df1],
             how="horizontal",
             )
+        s=s.filter(pl.col("q_n")==pl.col("r_n"))
         s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
         s=s.select([
             "Name",
