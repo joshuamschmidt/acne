@@ -11,7 +11,7 @@ nf pipeline for CNV analysis of genotype array data
 Using....
 
 ```
-export NXF_OPTS="-Xms8G -Xmx4G -Dnxf.pool.maxThreads=2000"
+export NXF_OPTS="-Xms4G -Xmx8G -Dnxf.pool.maxThreads=2000"
 
 nextflow run ./main.nf -resume -profile garvan \
 --input data/anzrag_sample_sheet.txt --partition true \
