@@ -92,8 +92,8 @@ class sampleDataPartition():
         self.df = q.collect()
     
     def get_samples(self):
-        self.samples=self.df.select(pl.col("^*.B Allele Freq$")).columns
-        self.samples=[s.split('.B Allele Freq')[0] for s in self.samples]
+        self.samples=self.df.select(pl.col("^*.GType$")).columns
+        self.samples=[s.split('.GType')[0] for s in self.samples]
 
     def define_partition_n(self):
         if(self.n_samples < 2 * self.target_n):
@@ -114,7 +114,7 @@ class sampleDataPartition():
         all_samples = self.samples
         for j, n_part in enumerate(self.n_per_partition):
             part_samples = all_samples[:n_part]
-            part_cols = [[s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
+            part_cols = [[s+".GType", s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
             part_cols = [item for sublist in part_cols for item in sublist]
             sub=self.df.select(["Name", "Chr", "Position"] + part_cols)
             sub.write_csv(self.prefix + "-" + str(j+1) + '.partition', sep='\t')
@@ -138,13 +138,13 @@ class sampleDataSplit():
         self.df = q.collect()
     
     def get_samples(self):
-        self.samples=self.df.select(pl.col("^*.B Allele Freq$")).columns
-        self.samples=[s.split('.B Allele Freq')[0] for s in self.samples]
+        self.samples=self.df.select(pl.col("^*.GType$")).columns
+        self.samples=[s.split('.GType')[0] for s in self.samples]
     
     def write_sample_data(self):
         for s in self.samples:
-            col_1, col_2 = s+".Log R Ratio", s+".B Allele Freq"
-            sub=self.df.select(["Name", col_1, col_2])
+            col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
+            sub=self.df.select(["Name", col_1, col_2, col_3])
             sub.write_csv(self.prefix+'_'+s+'.txt', sep='\t')
 
 

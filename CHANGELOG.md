@@ -9,13 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - added --geno option to set filtering criteria of SNPs in calculation of PFB file,
   equivalent of the PLINK --geno flag.
-
-- now processed signal files do not carry over the Genotype field from illumina genome studio. 
-  These per sample fields are now longer required in the input to the pipline.
-
-
 ### Fixed
-
 
 ## [0.0.2] - 2022-10-12
 
