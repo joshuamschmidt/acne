@@ -1,5 +1,5 @@
 process PENNCNV_FILTER {
-
+    tag "$meta.id"
     //container 'genomicslab/penncnv:latest'
     container 'wallen/penncnv:1.0.5'
 
@@ -22,7 +22,6 @@ process PENNCNV_FILTER {
     --qclrrsd 0.3 \
     --qcbafdrift 0.01 \
     --qcwf 0.05 \
-    --qcnumcnv 100 \
     -qcpassout ${prefix}.qcpass \
     -qcsumout ${prefix}.qcsum \
     -out ${prefix}.filteredcnv;

@@ -1,4 +1,5 @@
 process SPLITGS {
+    tag "$meta.id"
     container 'joshmschmidt/penncnvtools:0.0.1'
 
     input:
@@ -8,7 +9,10 @@ process SPLITGS {
     tuple val(meta), path("*.txt"), emit: output
 
     script:
+    prefix   = task.ext.prefix ?: "${meta.id}"
+
     """
-    pennCNVtools.py split --input $gsfile
+    export POLARS_MAX_THREADS=${task.cpus}
+    pennCNVtools.py split --input $gsfile --prefix $prefix
     """
 }
