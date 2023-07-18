@@ -63,6 +63,13 @@ optional.add_argument('--n', type=int, dest='n_per_partition',
                       help='how many inds should large input be split into',
                       default=None)
 
+optional.add_argument('--prefix', type=str, dest='prefix',
+                      help='batch prefix to attach to ind sample files when splitting',
+                      default=None)
+
+optional.add_argument('--geno', type=float, dest='geno',
+                      help='SNPs/markers with missingness fraction more than this are excluded from PFB',
+                      default=0.02)
 
 #----- class defs
 
@@ -72,6 +79,8 @@ class sampleDataPartition():
         self.input = input
         self.target_n = target_n
         self.df = []
+        self.clean_cols = []
+        self.make_clean_cols()
         self.load_data()
         self.samples= []
         self.get_samples()
@@ -79,9 +88,20 @@ class sampleDataPartition():
         self.n_per_partition=[]
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
+    
+    def make_clean_cols(self):
+        with open(self.input) as f:
+            cols=f.readline().rstrip().split("\t")
+            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+            f.close()
 
     def load_data(self):
-        q = pl.scan_csv(self.input, sep='\t')
+        q = (
+            pl.scan_csv(self.input, sep='\t')
+            .sort([
+                pl.col("Chr"), pl.col("Position")],
+                )
+        )
         self.df = q.collect()
     
     def get_samples(self):
@@ -118,15 +138,29 @@ class sampleDataPartition():
 
 # '''class for data to split by ind'''
 class sampleDataSplit():
-    def __init__(self, input: str,):
+    def __init__(self, input: str, prefix: str):
         self.input = input
+        self.prefix = prefix
+        self.clean_cols = []
+        self.make_clean_cols()
         self.df = []
         self.load_data()
         self.samples= []
         self.get_samples()
+    
+    def make_clean_cols(self):
+        with open(self.input) as f:
+            cols=f.readline().rstrip().split("\t")
+            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+            f.close()
 
     def load_data(self):
-        q = pl.scan_csv(self.input, sep='\t')
+        q = (
+            pl.scan_csv(self.input, sep='\t')
+            .sort([
+                pl.col("Chr"), pl.col("Position")],
+                )
+        )
         self.df = q.collect()
     
     def get_samples(self):
@@ -136,31 +170,71 @@ class sampleDataSplit():
     def write_sample_data(self):
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
-            sub=self.df.select(["Name", col_1, col_2, col_3])
-            sub.write_csv(s+'.txt', sep='\t')
+            sub=self.df.select(["Name","Chr","Position", col_1, col_2, col_3])
+            sub.write_csv(self.prefix+'_'+s+'.txt', sep='\t')
 
 
 # '''class for GtLogRBaf to pfb'''
 class pfbObj():
-    def __init__(self, input: str,):
+    def __init__(self, input: str, geno: float,):
         self.input = input
+        self.geno = geno
+        self.clean_cols = []
+        self.make_clean_cols()
         self.get_pfb()
+
+    def make_clean_cols(self):
+        with open(self.input) as f:
+            cols=f.readline().rstrip().split("\t")
+            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+            f.close()
+
     def get_pfb(self):
         q = (
-            pl.scan_csv(self.input, sep='\t')
-            .select(["Name", "Chr", "Position", pl.col("^*.GType$")])
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            .sort([
+                pl.col("Chr"), pl.col("Position")],)
+            .select([pl.col("^*.B Allele Freq$")])
             .with_columns([
-                pl.sum(pl.all().exclude(["Name", "Chr", "Position"]) == "AA").alias('ref'),
-                pl.sum(pl.all().exclude(["Name", "Chr", "Position"]) == "AB").alias('het'),
-                pl.sum(pl.all().exclude(["Name", "Chr", "Position"]) == "BB").alias('alt'),
+                pl.sum(pl.all().is_nan()).alias('n_miss'),
+                pl.sum(pl.all().is_not_nan()).alias('n_call')
+                ])
+            .fill_nan(0)
+            .with_columns([
+                pl.fold(acc=pl.lit(0),
+                f=lambda acc, x: acc + x, exprs=pl.col("*")).alias("sum")
                 ])
             .with_columns([
-                ( (pl.col("het") + (pl.col("alt")*2)) / ((pl.col("ref") + pl.col("het") + pl.col("alt")) * 2)).alias("PFB")
+                ( (pl.col("sum") - pl.col("n_miss") - pl.col("n_call") ) / pl.col("n_call")).alias("mean")
                 ])
-            .select(["Name", "Chr", "Position","PFB"])
+            .fill_nan(0)
+            .with_columns([
+                ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
+                ])
+            .select(["BAF","n_miss","n_call"])
             )
-        df = q.collect()
-        self.pfb = df
+        df1 = q.collect()
+        r = (
+            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            .select(["Name","Chr","Position"])
+            .sort([
+                pl.col("Chr"), pl.col("Position")],
+                )
+            )
+        df2=r.collect()
+        
+        s = pl.concat(
+            [df2, df1],
+            how="horizontal",
+            )
+        s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
+        s=s.select([
+            "Name",
+            "Chr",
+            "Position",
+            pl.when(pl.col("Name").str.contains("cnv|CNV")).then(pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
+            ])
+        self.pfb = s
 
 def main():
     args = parser.parse_args()
@@ -170,13 +244,13 @@ def main():
         data.write_partition_data()
 
     if(tool=='split'):
-        data = sampleDataSplit(args.input)
+        data = sampleDataSplit(args.input, args.prefix)
         data.write_sample_data()
 
     if(tool=='pfb'):
         if not args.output:
             parser.error('pfb tool selected: --output must be specified')
-        pfb = pfbObj(args.input)
+        pfb = pfbObj(args.input, args.geno)
         pfb.pfb.write_csv(args.output, sep='\t')
 
 

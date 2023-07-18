@@ -1,5 +1,5 @@
 process CONCATENATE_PENN_LOGS {
-
+    tag "$meta.id"
     //container 'genomicslab/penncnv:latest'
     //container 'wallen/penncnv:1.0.5'
 
