@@ -1,4 +1,4 @@
-`mamba create --name acnePy python=3.10.6 polars numpy`
+`mamba create --name acnePy python polars numpy zstandard`
 
 `mamba activate acnePy`
 
