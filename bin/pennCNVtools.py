@@ -190,19 +190,21 @@ class pfbObj():
             f.close()
 
     def get_pfb(self):
+        col_types = [ pl.Utf8 if col=='Name' else pl.Utf8 if col=='Chr' else pl.UInt32 if col=='Position' else pl.Utf8 if 'GType' in col else pl.Float64 for col in self.clean_cols]
+        col_dict = dict(zip(self.clean_cols, col_types))
         q = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict)
             .sort([
                 pl.col("Chr"), pl.col("Position")],)
             .select([pl.col("^*.B Allele Freq$")])
             .with_columns([
-                pl.sum(pl.all().is_nan()).alias('n_miss'),
-                pl.sum(pl.all().is_not_nan()).alias('n_call')
+                pl.sum_horizontal(pl.all().is_nan()).alias('n_miss'),
+                pl.sum_horizontal(pl.all().is_not_nan()).alias('n_call')
                 ])
             .fill_nan(0)
             .with_columns([
                 pl.fold(acc=pl.lit(0),
-                f=lambda acc, x: acc + x, exprs=pl.col("*")).alias("sum")
+                function=lambda acc, x: acc + x, exprs=pl.col("*")).alias("sum")
                 ])
             .with_columns([
                 ( (pl.col("sum") - pl.col("n_miss") - pl.col("n_call") ) / pl.col("n_call")).alias("mean")
@@ -213,7 +215,7 @@ class pfbObj():
                 ])
             .select(["BAF","n_miss","n_call"])
             )
-        df1 = q.collect()
+        df1 = q.collect( streaming=True  )
         r = (
             pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
             .select(["Name","Chr","Position"])
