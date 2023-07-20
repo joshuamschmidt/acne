@@ -97,7 +97,7 @@ class sampleDataPartition():
 
     def load_data(self):
         q = (
-            pl.scan_csv(self.input, sep='\t')
+            pl.scan_csv(self.input, separator='\t')
             .sort([
                 pl.col("Chr"), pl.col("Position")],
                 )
@@ -130,7 +130,7 @@ class sampleDataPartition():
             part_cols = [[s+".GType", s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
             part_cols = [item for sublist in part_cols for item in sublist]
             sub=self.df.select(["Name", "Chr", "Position"] + part_cols)
-            sub.write_csv(self.prefix + "-" + str(j+1) + '.partition', sep='\t')
+            sub.write_csv(self.prefix + "-" + str(j+1) + '.partition', separator='\t')
             all_samples = all_samples[n_part:]
 
 
@@ -156,7 +156,7 @@ class sampleDataSplit():
 
     def load_data(self):
         q = (
-            pl.scan_csv(self.input, sep='\t')
+            pl.scan_csv(self.input, separator='\t')
             .sort([
                 pl.col("Chr"), pl.col("Position")],
                 )
@@ -171,7 +171,7 @@ class sampleDataSplit():
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
             sub=self.df.select(["Name","Chr","Position", col_1, col_2, col_3])
-            sub.write_csv(self.prefix+'_'+s+'.txt', sep='\t')
+            sub.write_csv(self.prefix+'_'+s+'.txt', separator='\t')
 
 
 # '''class for GtLogRBaf to pfb'''
@@ -193,7 +193,7 @@ class pfbObj():
         col_types = [ pl.Utf8 if col=='Name' else pl.Utf8 if col=='Chr' else pl.UInt32 if col=='Position' else pl.Utf8 if 'GType' in col else pl.Float64 for col in self.clean_cols]
         col_dict = dict(zip(self.clean_cols, col_types))
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict)
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict, low_memory = True)
             .sort([
                 pl.col("Chr"), pl.col("Position")],)
             .select([pl.col("^*.B Allele Freq$")])
@@ -217,7 +217,7 @@ class pfbObj():
             )
         df1 = q.collect( streaming=True  )
         r = (
-            pl.scan_csv(self.input, sep='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
             .select(["Name","Chr","Position"])
             .sort([
                 pl.col("Chr"), pl.col("Position")],
@@ -253,7 +253,7 @@ def main():
         if not args.output:
             parser.error('pfb tool selected: --output must be specified')
         pfb = pfbObj(args.input, args.geno)
-        pfb.pfb.write_csv(args.output, sep='\t')
+        pfb.pfb.write_csv(args.output, separator='\t')
 
 
 if __name__ == '__main__':
