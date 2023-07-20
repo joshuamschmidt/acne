@@ -1,4 +1,4 @@
-FROM python:3.10.6
+FROM python:3.11.4
 
 MAINTAINER Joshua Schmidt joshmschmidt1@gmail.com
 
