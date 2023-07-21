@@ -190,45 +190,32 @@ class pfbObj():
             f.close()
 
     def get_pfb(self):
-        col_types = [ pl.Utf8 if col=='Name' else pl.Utf8 if col=='Chr' else pl.UInt32 if col=='Position' else pl.Utf8 if 'GType' in col else pl.Float64 for col in self.clean_cols]
+        col_types = [ pl.Utf8 if col=='Name' else pl.Categorical if col=='Chr' else pl.UInt32 if col=='Position' else pl.Categorical if 'GType' in col else pl.Float32 if 'Freq' in col else pl.Float32 if 'Ratio' in col else pl.UInt16 for col in self.clean_cols]
         col_dict = dict(zip(self.clean_cols, col_types))
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict, low_memory = True)
-            .sort([
-                pl.col("Chr"), pl.col("Position")],)
-            .select([pl.col("^*.B Allele Freq$")])
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict)
+            .select([pl.col("Name"), pl.col("Chr"), pl.col("Position"), pl.col("^*.B Allele Freq$")])
             .with_columns([
-                pl.sum_horizontal(pl.all().is_nan()).alias('n_miss'),
-                pl.sum_horizontal(pl.all().is_not_nan()).alias('n_call')
+                pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
+                pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_not_nan()).alias('n_call'),
                 ])
             .fill_nan(0)
             .with_columns([
                 pl.fold(acc=pl.lit(0),
-                function=lambda acc, x: acc + x, exprs=pl.col("*")).alias("sum")
+                function=lambda acc, x: acc + x, exprs=pl.col("^*.B Allele Freq$")).alias("sum")
                 ])
             .with_columns([
-                ( (pl.col("sum") - pl.col("n_miss") - pl.col("n_call") ) / pl.col("n_call")).alias("mean")
+                ( (pl.col("sum") / (pl.col("n_call") - pl.col("n_miss")) )).alias("mean")
                 ])
             .fill_nan(0)
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
                 ])
-            .select(["BAF","n_miss","n_call"])
-            )
-        df1 = q.collect( streaming=True  )
-        r = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols)
-            .select(["Name","Chr","Position"])
+            .select(["Name","Chr","Position","BAF","n_miss","n_call"])
             .sort([
-                pl.col("Chr"), pl.col("Position")],
-                )
+                pl.col("Chr"), pl.col("Position")],)
             )
-        df2=r.collect()
-        
-        s = pl.concat(
-            [df2, df1],
-            how="horizontal",
-            )
+        s= q.collect( streaming=True  )
         s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
         s=s.select([
             "Name",
