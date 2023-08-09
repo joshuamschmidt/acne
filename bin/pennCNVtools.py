@@ -71,6 +71,14 @@ optional.add_argument('--geno', type=float, dest='geno',
                       help='SNPs/markers with missingness fraction more than this are excluded from PFB',
                       default=0.02)
 
+#---- functions used by multiple classes....
+def make_clean_cols(input):
+    cols=pl.read_csv(input, separator='\t', has_header=True, n_rows=0 )
+    cols=cols.columns
+    clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
+    return(clean_cols)
+
+
 #----- class defs
 
 # '''class for data to split into n ind chunks'''
@@ -80,7 +88,7 @@ class sampleDataPartition():
         self.target_n = target_n
         self.df = []
         self.clean_cols = []
-        self.make_clean_cols()
+        self._make_clean_cols()
         self.load_data()
         self.samples= []
         self.get_samples()
@@ -89,11 +97,8 @@ class sampleDataPartition():
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
     
-    def make_clean_cols(self):
-        with open(self.input) as f:
-            cols=f.readline().rstrip().split("\t")
-            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
-            f.close()
+    def _make_clean_cols(self.input):
+        make_clean_cols(self)
 
     def load_data(self):
         q = (
@@ -142,17 +147,14 @@ class sampleDataSplit():
         self.input = input
         self.prefix = prefix
         self.clean_cols = []
-        self.make_clean_cols()
+        self._make_clean_cols()
         self.df = []
         self.load_data()
         self.samples= []
         self.get_samples()
     
-    def make_clean_cols(self):
-        with open(self.input) as f:
-            cols=f.readline().rstrip().split("\t")
-            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
-            f.close()
+    def _make_clean_cols(self):
+        make_clean_cols(self.input)
 
     def load_data(self):
         q = (
@@ -180,14 +182,11 @@ class pfbObj():
         self.input = input
         self.geno = geno
         self.clean_cols = []
-        self.make_clean_cols()
+        self._make_clean_cols()
         self.get_pfb()
 
-    def make_clean_cols(self):
-        with open(self.input) as f:
-            cols=f.readline().rstrip().split("\t")
-            self.clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
-            f.close()
+    def _make_clean_cols(self):
+        make_clean_cols(self.input)
 
     def get_pfb(self):
         col_types = [ pl.Utf8 if col=='Name' else pl.Categorical if col=='Chr' else pl.UInt32 if col=='Position' else pl.Categorical if 'GType' in col else pl.Float32 if 'Freq' in col else pl.Float32 if 'Ratio' in col else pl.UInt16 for col in self.clean_cols]
