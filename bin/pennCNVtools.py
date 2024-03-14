@@ -73,7 +73,11 @@ optional.add_argument('--geno', type=float, dest='geno',
 
 #---- functions used by multiple classes....
 def make_clean_cols(input):
-    cols=pl.read_csv(input, has_header=True, n_rows=1, n_threads=1, infer_schema_length=1 )
+    sep_char=','
+    cols=pl.read_csv(input, sep=sep_char, has_header=True, n_rows=1, n_threads=1, infer_schema_length=1 )
+    if cols.shape[1]==1:
+        sep_char='\t'
+        cols=pl.read_csv(input, sep=sep_char, has_header=True, n_rows=1, n_threads=1, infer_schema_length=1 )
     cols=cols.columns
     clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
     return(clean_cols)
