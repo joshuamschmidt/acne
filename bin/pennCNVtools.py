@@ -127,6 +127,8 @@ class sampleDataPartition():
         self.input = input
         self.target_n = target_n
         self.df = []
+        self.file_str={}
+        self._file_str()
         self.clean_cols = []
         self._make_clean_cols()
         self.load_data()
@@ -137,6 +139,9 @@ class sampleDataPartition():
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
     
+    def _file_str(self.input):
+        file_str(self)
+
     def _make_clean_cols(self.input):
         make_clean_cols(self)
 
