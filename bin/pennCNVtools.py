@@ -231,10 +231,15 @@ class pfbObj():
     def __init__(self, input: str, geno: float,):
         self.input = input
         self.geno = geno
+        self.file_str={}
+        self._file_str()
         self.clean_cols = []
         self._make_clean_cols()
         self.get_pfb()
-
+    
+    def _file_str(self.input):
+        file_str(self)
+    
     def _make_clean_cols(self):
         make_clean_cols(self.input)
 
