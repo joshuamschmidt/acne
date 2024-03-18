@@ -77,19 +77,19 @@ optional.add_argument('--geno', type=float, dest='geno',
 def file_str(input):
     file_str = {}
     with open(input, 'rt') as fh:
-        header=fh.readline().strip()
-    assert 'Name' in header, 'BAF file must have SNP Name column'
+        file_str['header']=fh.readline().strip()
+    assert 'Name' in file_str['header'], 'BAF file must have SNP Name column'
     std_cols = ['Name', 'Chr', 'Pos']
     file_str['n_std']=0
     file_str['std_cols']=[]
     for c in std_cols:
-         match = re.search(c+'\t|'+c+',', header)
+         match = re.search(c+'\t|'+c+',', file_str['header'])
          if match:
             file_str['n_std'] += 1
             file_str['std_cols'].append(c)
-    file_str['n_BAF']=header.count('B Allele Freq')
-    file_str['n_LRR']=header.count('Log R Ratio')
-    file_str['n_GT']=header.count('GType')
+    file_str['n_BAF']= file_str['header'].count('B Allele Freq')
+    file_str['n_LRR']= file_str['header'].count('Log R Ratio')
+    file_str['n_GT'] = file_str['header'].count('GType')
     assert file_str['n_BAF'] >= 1, 'You must have BAF data for at least 1 sample'
     assert file_str['n_LRR'] >= 1, 'You must have LRR data for at least 1 sample'
     assert file_str['n_BAF'] == file_str['n_LRR'], "n LRR and n BAF mismatch"
@@ -98,6 +98,7 @@ def file_str(input):
     return(file_str)
     
 
+def sample_order(file_str):
 
 
     
