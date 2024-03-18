@@ -4,6 +4,7 @@ import numpy as np
 import polars as pl
 import textwrap
 import os
+import re
 
 '''required and optional argument parser'''
 
@@ -72,8 +73,38 @@ optional.add_argument('--geno', type=float, dest='geno',
                       default=0.02)
 
 #---- functions used by multiple classes....
+
+def file_str(input):
+    file_str = {}
+    with open(input, 'rt') as fh:
+        header=fh.readline().strip()
+    assert 'Name' in header, 'BAF file must have SNP Name column'
+    std_cols = ['Name', 'Chr', 'Pos']
+    file_str['n_std']=0
+    file_str['std_cols']=[]
+    for c in std_cols:
+         match = re.search(c+'\t|'+c+',', header)
+         if match:
+            file_str['n_std'] += 1
+            file_str['std_cols'].append(c)
+    file_str['n_BAF']=header.count('B Allele Freq')
+    file_str['n_LRR']=header.count('Log R Ratio')
+    file_str['n_GT']=header.count('GType')
+    assert file_str['n_BAF'] >= 1, 'You must have BAF data for at least 1 sample'
+    assert file_str['n_LRR'] >= 1, 'You must have LRR data for at least 1 sample'
+    assert file_str['n_BAF'] == file_str['n_LRR'], "n LRR and n BAF mismatch"
+    assert file_str['n_GT'] == 0 or file_str['n_GT'] == file_str['n_BAF'], 'n GType and n BAF mismatch'
+    file_str['exp_n'] = file_str['n_std'] + file_str['n_BAF'] + file_str['n_LRR'] + file_str['n_GT']
+    return(file_str)
+    
+
+
+
+    
+
+
 def make_clean_cols(input):
-    sep_char=','
+    
     cols=pl.read_csv(input, sep=sep_char, has_header=True, n_rows=1, n_threads=1, infer_schema_length=1 )
     if cols.shape[1]==1:
         sep_char='\t'
@@ -81,6 +112,9 @@ def make_clean_cols(input):
     cols=cols.columns
     clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
     return(clean_cols)
+
+def get_col_types(input):
+    col_types = {}
 
 
 
