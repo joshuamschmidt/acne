@@ -191,6 +191,8 @@ class sampleDataSplit():
     def __init__(self, input: str, prefix: str):
         self.input = input
         self.prefix = prefix
+        self.file_str={}
+        self._file_str()
         self.clean_cols = []
         self._make_clean_cols()
         self.df = []
@@ -198,6 +200,9 @@ class sampleDataSplit():
         self.samples= []
         self.get_samples()
     
+    def _file_str(self.input):
+        file_str(self)
+
     def _make_clean_cols(self):
         make_clean_cols(self.input)
 
