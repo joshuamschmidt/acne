@@ -72,6 +72,11 @@ optional.add_argument('--geno', type=float, dest='geno',
                       help='SNPs/markers with missingness fraction more than this are excluded from PFB',
                       default=0.02)
 
+optional.add_argument('--map_file', type=str, dest='map_file',
+                      help='file of Name, Chr, Pos to update co-ordinates in the PFB file',
+                      default=None)
+
+
 #---- functions used by multiple classes....
 
 def make_file_struct(obj):
@@ -282,7 +287,7 @@ class sampleDataSplit():
 
 # '''class for GtLogRBaf to pfb'''
 class pfbObj():
-    def __init__(self, input: str, geno: float):
+    def __init__(self, input: str, geno: float, map_file: None | str):
         self.input = input
         self.geno = geno
         self._make_file_struct()
