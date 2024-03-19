@@ -142,8 +142,28 @@ def dedup_samples(file_order):
     file_order['samples'] = samples
     return(file_order)
 
-def get_col_types(input):
-    col_types = {}
+def pl_header(obj):
+    
+    type_d = {
+    'Name':pl.Utf8,
+    'Chr':pl.Categorical,
+    'Position':pl.UInt32,
+    'GType':pl.Categorical,
+    'B Allele Freq':pl.Float32,
+    'Log R Ratio':pl.Float32
+    }
+
+    col_types = []
+    header_cols = []
+    for c in obj.file_str['std_cols']:
+        col.types.append(type_d[c])
+        header_cols.append(c)
+    for s in obj.file_order['samples']:
+        for i in range(len(obj.file_order['per_sample_cols'])):
+            col.types.append(type_d[obj.file_order['per_sample_cols'][i]])
+            header_cols.append(s+'.'+obj.file_order['per_sample_cols'][i])
+    return(col_types,header_cols)
+
 
 
 
