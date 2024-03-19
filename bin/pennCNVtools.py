@@ -74,9 +74,9 @@ optional.add_argument('--geno', type=float, dest='geno',
 
 #---- functions used by multiple classes....
 
-def file_struct(input):
+def make_file_struct(obj):
     file_struct = {}
-    with open(input, 'rt') as fh:
+    with open(obj.input, 'rt') as fh:
         file_struct['header']=fh.readline().strip()
     assert 'Name' in file_struct['header'], 'BAF file must have SNP Name column'
     std_cols = ['Name', 'Chr', 'Pos']
@@ -87,31 +87,32 @@ def file_struct(input):
          if match:
             file_struct['n_std'] += 1
             file_struct['std_cols'].append(c)
+
     file_struct['n_per_sample']=0
     file_struct['n_BAF']= file_struct['header'].count('B Allele Freq')
     file_struct['n_LRR']= file_struct['header'].count('Log R Ratio')
     file_struct['n_GT'] = file_struct['header'].count('GType')
-    assert file_struct['n_BAF'] >= 1, 'You must have BAF data for at least 1 sample'
+    assert file_struct['n_BAF'] >= 1, 'No BAF data present'
     file_struct['n_per_sample'] += 1
-    assert file_struct['n_LRR'] >= 1, 'You must have LRR data for at least 1 sample'
-     file_struct['n_per_sample'] += 1
+    assert file_struct['n_LRR'] >= 1, 'No LRR data present'
+    file_struct['n_per_sample'] += 1
     assert file_struct['n_BAF'] == file_struct['n_LRR'], "n LRR and n BAF mismatch"
     assert file_struct['n_GT'] == 0 or file_struct['n_GT'] == file_struct['n_BAF'], 'n GType and n BAF mismatch'
-    if(flie_str['n_GT']) >=1:
+    if(file_struct['n_GT']) >=1:
          file_struct['n_per_sample'] += 1
     file_struct['exp_n'] = file_struct['n_std'] + file_struct['n_BAF'] + file_struct['n_LRR'] + file_struct['n_GT']
     file_struct['col_list'] = file_struct['header'].split(',')
-    return(file_struct)
+    obj.file_struct = file_struct
     
 
-def sample_order(file_struct):
+def get_file_order(obj):
     file_order = {}
     file_order['per_sample_cols'] = ['B Allele Freq', 'Log R Ratio', 'GType']
-    if file_struct['n_per_sample']==2:
+    if obj.file_struct['n_per_sample']==2:
         file_order['per_sample_cols'] = file_order['per_sample_cols'][:-1]
     
-    sample_tup_list = list(zip(*[iter(file_struct['col_list'][file_struct['n_std']:])]*file_struct['n_per_sample'])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
-    assert len(sample_tup_list) == file_struct['n_BAF']
+    sample_tup_list = list(zip(*[iter(obj.file_struct['col_list'][obj.file_struct['n_std']:])]*obj.file_struct['n_per_sample'])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+    assert len(sample_tup_list) == obj.file_struct['n_BAF']
     # group()
     first_sample = sample_tup_list[0]
     match = re.search(file_order['per_sample_cols'][0], first_sample[0])
@@ -122,14 +123,15 @@ def sample_order(file_struct):
         assert sample[0].split('.'+file_order['per_sample_cols'][0])[0] == sample[1].split('.'+file_order['per_sample_cols'][1])[0], 'Not all samples follow the same ordering of '+file_order['per_sample_cols'][0]+' '+file_order['per_sample_cols'][1]
         file_order['samples'].append(sample[0].split('.'+file_order['per_sample_cols'][0])[0])
     
-    return(file_order)
+    obj.file_order = file_order
+    return()
 
 
-def dedup_samples(file_order):
-    if np.size(np.unique(file_order['samples'])) == np.size(file_order['samples']):
-        return(file_order)
+def dedup_samples(obj):
+    if np.size(np.unique(obj.file_order['samples'])) == np.size(obj.file_order['samples']):
+        return()
     samples = []
-    for sample in file_order['samples']:
+    for sample in obj.file_order['samples']:
         if not sample in samples:
             samples.append(sample)
         else:
@@ -139,8 +141,8 @@ def dedup_samples(file_order):
                 n += 1
                 new_sample = sample+':'+str(n)
             samples.append(new_sample)
-    file_order['samples'] = samples
-    return(file_order)
+    obj.file_order['samples'] = samples
+    return()
 
 
 def pl_header(obj):
@@ -156,13 +158,15 @@ def pl_header(obj):
     col_types = []
     header_cols = []
     for c in obj.file_struct['std_cols']:
-        col.types.append(type_d[c])
+        col_types.append(type_d[c])
         header_cols.append(c)
     for s in obj.file_order['samples']:
         for i in range(len(obj.file_order['per_sample_cols'])):
-            col.types.append(type_d[obj.file_order['per_sample_cols'][i]])
+            col_types.append(type_d[obj.file_order['per_sample_cols'][i]])
             header_cols.append(s+'.'+obj.file_order['per_sample_cols'][i])
-    return(col_types, header_cols)
+    obj.col_types = col_types
+    obj.header_cols = header_cols
+    return()
 
 
 
@@ -188,8 +192,8 @@ class sampleDataPartition():
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
     
-    def _file_struct(self.input):
-        file_struct(self)
+    def _file_struct(self):
+        file_struct(self.input)
 
     def _make_clean_cols(self.input):
         make_clean_cols(self)
@@ -275,29 +279,35 @@ class sampleDataSplit():
             sub.write_csv(self.prefix+'_'+s+'.txt', separator='\t')
 
 
+
 # '''class for GtLogRBaf to pfb'''
 class pfbObj():
-    def __init__(self, input: str, geno: float,):
+    def __init__(self, input: str, geno: float):
         self.input = input
         self.geno = geno
-        self.file_struct={}
-        self._file_struct()
-        self.clean_cols = []
-        self._make_clean_cols()
+        self._make_file_struct()
+        self._get_file_order()
+        self._dedup_samples()
+        self._pl_header()
         self.get_pfb()
-    
-    def _file_struct(self.input):
-        file_struct(self)
-    
-    def _make_clean_cols(self):
-        make_clean_cols(self.input)
+
+    def _make_file_struct(self):
+        make_file_struct(self)
+
+    def _get_file_order(self):
+        get_file_order(self)
+
+    def _dedup_samples(self):
+        dedup_samples(self)
+
+    def _pl_header(self):
+        pl_header(self)
 
     def get_pfb(self):
-        col_types = [ pl.Utf8 if col=='Name' else pl.Categorical if col=='Chr' else pl.UInt32 if col=='Position' else pl.Categorical if 'GType' in col else pl.Float32 if 'Freq' in col else pl.Float32 if 'Ratio' in col else pl.UInt16 for col in self.clean_cols]
-        col_dict = dict(zip(self.clean_cols, col_types))
+        col_dict = dict(zip(self.header_cols, self.col_types))
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict)
-            .select([pl.col("Name"), pl.col("Chr"), pl.col("Position"), pl.col("^*.B Allele Freq$")])
+            .select([pl.col("Name"), pl.col("^*.B Allele Freq$")])
             .with_columns([
                 pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
                 pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_not_nan()).alias('n_call'),
@@ -314,9 +324,7 @@ class pfbObj():
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
                 ])
-            .select(["Name","Chr","Position","BAF","n_miss","n_call"])
-            .sort([
-                pl.col("Chr"), pl.col("Position")],)
+            .select(["Name","BAF","n_miss","n_call"])
             )
         s= q.collect( streaming=True  )
         s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
