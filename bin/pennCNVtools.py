@@ -324,7 +324,7 @@ class pfbObj():
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
                 ])
-            .select(["Name","BAF","n_miss","n_call"])
+            .select([*t.file_struct['std_cols'],"BAF","n_miss","n_call"])
             )
         s= q.collect( streaming=True  )
         s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
