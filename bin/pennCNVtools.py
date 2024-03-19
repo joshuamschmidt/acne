@@ -306,8 +306,8 @@ class pfbObj():
     def get_pfb(self):
         col_dict = dict(zip(self.header_cols, self.col_types))
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.clean_cols, dtypes = col_dict)
-            .select([pl.col("Name"), pl.col("^*.B Allele Freq$")])
+            pl.scan_csv(self.input, separator=',', has_header=False, skip_rows=1, with_column_names=lambda cols: self.header_cols, dtypes = col_dict)
+            .select( [*[pl.col(c) for c in  t.file_struct['std_cols']],pl.col("^*.B Allele Freq$") ])
             .with_columns([
                 pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
                 pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_not_nan()).alias('n_call'),
@@ -330,8 +330,6 @@ class pfbObj():
         s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
         s=s.select([
             "Name",
-            "Chr",
-            "Position",
             pl.when(pl.col("Name").str.contains("cnv|CNV")).then(pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
             ])
         self.pfb = s
