@@ -95,11 +95,19 @@ def file_str(input):
     assert file_str['n_BAF'] == file_str['n_LRR'], "n LRR and n BAF mismatch"
     assert file_str['n_GT'] == 0 or file_str['n_GT'] == file_str['n_BAF'], 'n GType and n BAF mismatch'
     file_str['exp_n'] = file_str['n_std'] + file_str['n_BAF'] + file_str['n_LRR'] + file_str['n_GT']
+    file_str['col_list'] = file_str['header'].split(',')
     return(file_str)
     
 
 def sample_order(file_str):
 
+    sample_tup_list = list(zip(*[iter(file_str['col_list'][file_str['n_std']:])])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+    assert len(sample_tup_list) == file_str['n_BAF']
+    # group()
+    match = re.search('B Allele Freq|Log R Ratio', sample_tup_list[0][0])
+    if match.group() == 'B Allele Freq':
+
+    
 
     
 
