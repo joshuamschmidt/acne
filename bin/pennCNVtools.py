@@ -87,13 +87,18 @@ def file_str(input):
          if match:
             file_str['n_std'] += 1
             file_str['std_cols'].append(c)
+    file_str['n_per_sample']=0
     file_str['n_BAF']= file_str['header'].count('B Allele Freq')
     file_str['n_LRR']= file_str['header'].count('Log R Ratio')
     file_str['n_GT'] = file_str['header'].count('GType')
     assert file_str['n_BAF'] >= 1, 'You must have BAF data for at least 1 sample'
+    file_str['n_per_sample'] += 1
     assert file_str['n_LRR'] >= 1, 'You must have LRR data for at least 1 sample'
+     file_str['n_per_sample'] += 1
     assert file_str['n_BAF'] == file_str['n_LRR'], "n LRR and n BAF mismatch"
     assert file_str['n_GT'] == 0 or file_str['n_GT'] == file_str['n_BAF'], 'n GType and n BAF mismatch'
+    if(flie_str['n_GT']) >=1:
+         file_str['n_per_sample'] += 1
     file_str['exp_n'] = file_str['n_std'] + file_str['n_BAF'] + file_str['n_LRR'] + file_str['n_GT']
     file_str['col_list'] = file_str['header'].split(',')
     return(file_str)
