@@ -125,20 +125,22 @@ def sample_order(file_str):
     return(file_order)
 
 
-    
-
-    
-
-
-def make_clean_cols(input):
-    
-    cols=pl.read_csv(input, sep=sep_char, has_header=True, n_rows=1, n_threads=1, infer_schema_length=1 )
-    if cols.shape[1]==1:
-        sep_char='\t'
-        cols=pl.read_csv(input, sep=sep_char, has_header=True, n_rows=1, n_threads=1, infer_schema_length=1 )
-    cols=cols.columns
-    clean_cols=[col if (col not in cols[:i]) else "DUP"+str(cols[:i].count(col))+"_"+str(col) for i, col in enumerate(cols)]
-    return(clean_cols)
+def dedup_samples(file_order):
+    if np.size(np.unique(file_order['samples'])) == np.size(file_order['samples']):
+        return(file_order)
+    samples = []
+    for sample in file_order['samples']:
+        if not sample in samples:
+            samples.append(sample)
+        else:
+            n=0
+            new_sample = sample
+            while new_sample in samples:
+                n += 1
+                new_sample = sample+':'+str(n)
+            samples.append(new_sample)
+    file_order['samples'] = samples
+    return(file_order)
 
 def get_col_types(input):
     col_types = {}
