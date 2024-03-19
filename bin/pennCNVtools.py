@@ -105,12 +105,25 @@ def file_str(input):
     
 
 def sample_order(file_str):
-
-    sample_tup_list = list(zip(*[iter(file_str['col_list'][file_str['n_std']:])])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+    file_order = {}
+    file_order['per_sample_cols'] = ['B Allele Freq', 'Log R Ratio', 'GType']
+    if file_str['n_per_sample']==2:
+        file_order['per_sample_cols'] = file_order['per_sample_cols'][:-1]
+    
+    sample_tup_list = list(zip(*[iter(file_str['col_list'][file_str['n_std']:])]*file_str['n_per_sample'])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
     assert len(sample_tup_list) == file_str['n_BAF']
     # group()
-    match = re.search('B Allele Freq|Log R Ratio', sample_tup_list[0][0])
-    if match.group() == 'B Allele Freq':
+    first_sample = sample_tup_list[0]
+    match = re.search(file_order['per_sample_cols'][0], first_sample[0])
+    if not match:
+        file_order['per_sample_cols'][0], file_order['per_sample_cols'][1] = file_order['per_sample_cols'][1], file_order['per_sample_cols'][0]
+    file_order['samples'] = []
+    for sample in sample_tup_list:
+        assert sample[0].split('.'+file_order['per_sample_cols'][0])[0] == sample[1].split('.'+file_order['per_sample_cols'][1])[0], 'Not all samples follow the same ordering of '+file_order['per_sample_cols'][0]+' '+file_order['per_sample_cols'][1]
+        file_order['samples'].append(sample[0].split('.'+file_order['per_sample_cols'][0])[0])
+    
+    return(file_order)
+
 
     
 
