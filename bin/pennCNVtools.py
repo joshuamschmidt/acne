@@ -74,44 +74,44 @@ optional.add_argument('--geno', type=float, dest='geno',
 
 #---- functions used by multiple classes....
 
-def file_str(input):
-    file_str = {}
+def file_struct(input):
+    file_struct = {}
     with open(input, 'rt') as fh:
-        file_str['header']=fh.readline().strip()
-    assert 'Name' in file_str['header'], 'BAF file must have SNP Name column'
+        file_struct['header']=fh.readline().strip()
+    assert 'Name' in file_struct['header'], 'BAF file must have SNP Name column'
     std_cols = ['Name', 'Chr', 'Pos']
-    file_str['n_std']=0
-    file_str['std_cols']=[]
+    file_struct['n_std']=0
+    file_struct['std_cols']=[]
     for c in std_cols:
-         match = re.search(c+'\t|'+c+',', file_str['header'])
+         match = re.search(c+'\t|'+c+',', file_struct['header'])
          if match:
-            file_str['n_std'] += 1
-            file_str['std_cols'].append(c)
-    file_str['n_per_sample']=0
-    file_str['n_BAF']= file_str['header'].count('B Allele Freq')
-    file_str['n_LRR']= file_str['header'].count('Log R Ratio')
-    file_str['n_GT'] = file_str['header'].count('GType')
-    assert file_str['n_BAF'] >= 1, 'You must have BAF data for at least 1 sample'
-    file_str['n_per_sample'] += 1
-    assert file_str['n_LRR'] >= 1, 'You must have LRR data for at least 1 sample'
-     file_str['n_per_sample'] += 1
-    assert file_str['n_BAF'] == file_str['n_LRR'], "n LRR and n BAF mismatch"
-    assert file_str['n_GT'] == 0 or file_str['n_GT'] == file_str['n_BAF'], 'n GType and n BAF mismatch'
+            file_struct['n_std'] += 1
+            file_struct['std_cols'].append(c)
+    file_struct['n_per_sample']=0
+    file_struct['n_BAF']= file_struct['header'].count('B Allele Freq')
+    file_struct['n_LRR']= file_struct['header'].count('Log R Ratio')
+    file_struct['n_GT'] = file_struct['header'].count('GType')
+    assert file_struct['n_BAF'] >= 1, 'You must have BAF data for at least 1 sample'
+    file_struct['n_per_sample'] += 1
+    assert file_struct['n_LRR'] >= 1, 'You must have LRR data for at least 1 sample'
+     file_struct['n_per_sample'] += 1
+    assert file_struct['n_BAF'] == file_struct['n_LRR'], "n LRR and n BAF mismatch"
+    assert file_struct['n_GT'] == 0 or file_struct['n_GT'] == file_struct['n_BAF'], 'n GType and n BAF mismatch'
     if(flie_str['n_GT']) >=1:
-         file_str['n_per_sample'] += 1
-    file_str['exp_n'] = file_str['n_std'] + file_str['n_BAF'] + file_str['n_LRR'] + file_str['n_GT']
-    file_str['col_list'] = file_str['header'].split(',')
-    return(file_str)
+         file_struct['n_per_sample'] += 1
+    file_struct['exp_n'] = file_struct['n_std'] + file_struct['n_BAF'] + file_struct['n_LRR'] + file_struct['n_GT']
+    file_struct['col_list'] = file_struct['header'].split(',')
+    return(file_struct)
     
 
-def sample_order(file_str):
+def sample_order(file_struct):
     file_order = {}
     file_order['per_sample_cols'] = ['B Allele Freq', 'Log R Ratio', 'GType']
-    if file_str['n_per_sample']==2:
+    if file_struct['n_per_sample']==2:
         file_order['per_sample_cols'] = file_order['per_sample_cols'][:-1]
     
-    sample_tup_list = list(zip(*[iter(file_str['col_list'][file_str['n_std']:])]*file_str['n_per_sample'])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
-    assert len(sample_tup_list) == file_str['n_BAF']
+    sample_tup_list = list(zip(*[iter(file_struct['col_list'][file_struct['n_std']:])]*file_struct['n_per_sample'])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+    assert len(sample_tup_list) == file_struct['n_BAF']
     # group()
     first_sample = sample_tup_list[0]
     match = re.search(file_order['per_sample_cols'][0], first_sample[0])
@@ -155,7 +155,7 @@ def pl_header(obj):
 
     col_types = []
     header_cols = []
-    for c in obj.file_str['std_cols']:
+    for c in obj.file_struct['std_cols']:
         col.types.append(type_d[c])
         header_cols.append(c)
     for s in obj.file_order['samples']:
@@ -176,8 +176,8 @@ class sampleDataPartition():
         self.input = input
         self.target_n = target_n
         self.df = []
-        self.file_str={}
-        self._file_str()
+        self.file_struct={}
+        self._file_struct()
         self.clean_cols = []
         self._make_clean_cols()
         self.load_data()
@@ -188,8 +188,8 @@ class sampleDataPartition():
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
     
-    def _file_str(self.input):
-        file_str(self)
+    def _file_struct(self.input):
+        file_struct(self)
 
     def _make_clean_cols(self.input):
         make_clean_cols(self)
@@ -240,8 +240,8 @@ class sampleDataSplit():
     def __init__(self, input: str, prefix: str):
         self.input = input
         self.prefix = prefix
-        self.file_str={}
-        self._file_str()
+        self.file_struct={}
+        self._file_struct()
         self.clean_cols = []
         self._make_clean_cols()
         self.df = []
@@ -249,8 +249,8 @@ class sampleDataSplit():
         self.samples= []
         self.get_samples()
     
-    def _file_str(self.input):
-        file_str(self)
+    def _file_struct(self.input):
+        file_struct(self)
 
     def _make_clean_cols(self):
         make_clean_cols(self.input)
@@ -280,14 +280,14 @@ class pfbObj():
     def __init__(self, input: str, geno: float,):
         self.input = input
         self.geno = geno
-        self.file_str={}
-        self._file_str()
+        self.file_struct={}
+        self._file_struct()
         self.clean_cols = []
         self._make_clean_cols()
         self.get_pfb()
     
-    def _file_str(self.input):
-        file_str(self)
+    def _file_struct(self.input):
+        file_struct(self)
     
     def _make_clean_cols(self):
         make_clean_cols(self.input)
