@@ -59,7 +59,6 @@ optional.add_argument('--output', type=str,
                        dest='output',
                        help='output:\nif tool is "pfb", then creates a pfb file\nit has no effect for other tools')
 
-
 optional.add_argument('--n', type=int, dest='n_per_partition',
                       help='how many inds should large input be split into',
                       default=None)
