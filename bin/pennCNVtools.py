@@ -87,7 +87,7 @@ def make_file_struct(obj):
     file_struct['n_std']=0
     file_struct['std_cols']=[]
     for c in std_cols:
-         match = re.search(c+'\t|'+c+'\t', file_struct['header'])
+         match = re.search(c+'\t', file_struct['header'])
          if match:
             file_struct['n_std'] += 1
             file_struct['std_cols'].append(c)
