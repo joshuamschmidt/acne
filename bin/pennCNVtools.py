@@ -310,7 +310,7 @@ class pfbObj():
     def get_pfb(self):
         col_dict = dict(zip(self.header_cols, self.col_types))
         q = (
-            pl.scan_csv(self.input, separator=',', has_header=False, skip_rows=1, with_column_names=lambda cols: self.header_cols, dtypes = col_dict)
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.header_cols, dtypes = col_dict)
             .select( [*[pl.col(c) for c in  t.file_struct['std_cols']],pl.col("^*.B Allele Freq$") ])
             .with_columns([
                 pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
