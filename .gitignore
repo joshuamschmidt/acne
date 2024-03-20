@@ -9,3 +9,5 @@ testing*
 assets/*
 *.pyc
 *tmp*
+test_data/*
+test_data*
