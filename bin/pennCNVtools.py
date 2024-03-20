@@ -87,7 +87,7 @@ def make_file_struct(obj):
     file_struct['n_std']=0
     file_struct['std_cols']=[]
     for c in std_cols:
-         match = re.search(c+'\t|'+c+',', file_struct['header'])
+         match = re.search(c+'\t|'+c+'\t', file_struct['header'])
          if match:
             file_struct['n_std'] += 1
             file_struct['std_cols'].append(c)
@@ -105,7 +105,7 @@ def make_file_struct(obj):
     if(file_struct['n_GT']) >=1:
          file_struct['n_per_sample'] += 1
     file_struct['exp_n'] = file_struct['n_std'] + file_struct['n_BAF'] + file_struct['n_LRR'] + file_struct['n_GT']
-    file_struct['col_list'] = file_struct['header'].split(',')
+    file_struct['col_list'] = file_struct['header'].split('\t')
     obj.file_struct = file_struct
     
 
