@@ -88,8 +88,8 @@ class fileStructure():
         self.get_std()
         self.n_BAF = self.n_data_cols('B Allele Freq')
         self.n_LRR = self.n_data_cols('Log R Ratio')
-        self.n_GT = self.n_data_cols('GType')
         self.n_per_sample = 2
+        self.n_GT = self.n_data_cols('GType')
         if self.n_GT >= 1:
             self.n_per_sample = 3
         self.n_expected = len(self.std_cols) + self.n_per_sample * self.n_BAF
