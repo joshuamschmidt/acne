@@ -9,8 +9,8 @@ import re
 '''required and optional argument parser'''
 
 parser = argparse.ArgumentParser(prog='pennCNVtools',
-                        formatter_class=argparse.RawDescriptionHelpFormatter,
-                        description=textwrap.dedent('''\
+                                 formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 description=textwrap.dedent('''\
                         Python Utilities for making PENN CNV inputs from
                         Genome Studio output (GType, BAF and Log R Ratio)
                         ------------------------------------------------
@@ -35,8 +35,8 @@ parser = argparse.ArgumentParser(prog='pennCNVtools',
                         Note - these tools use Polars for fast data input
                         and manipulation. set env for n processes.
                         '''),
-                        add_help=False,
-                        epilog="Questions, bugs etc?\njoshmschmidt1@gmail.com\ngithub.com/joshuamschmidt")
+                                 add_help=False,
+                                 epilog="Questions, bugs etc?\njoshmschmidt1@gmail.com\ngithub.com/joshuamschmidt")
 parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
@@ -50,14 +50,15 @@ optional.add_argument(
     help='show this help message and exit'
 )
 
-parser.add_argument('tool',metavar='TOOL', type=str, nargs=1, choices={"partition", "split", "pfb"}, help='which tool to run')
+parser.add_argument('tool', metavar='TOOL', type=str, nargs=1, choices={
+                    "partition", "split", "pfb"}, help='which tool to run')
 
 required.add_argument('--input', type=str, dest='input',
-                    help='input file from genome studio with GT, LogR and BAF cols per sample')
+                      help='input file from genome studio with GT, LogR and BAF cols per sample')
 
 optional.add_argument('--output', type=str,
-                       dest='output',
-                       help='output:\nif tool is "pfb", then creates a pfb file\nit has no effect for other tools')
+                      dest='output',
+                      help='output:\nif tool is "pfb", then creates a pfb file\nit has no effect for other tools')
 
 optional.add_argument('--n', type=int, dest='n_per_partition',
                       help='how many inds should large input be split into',
@@ -76,46 +77,57 @@ optional.add_argument('--map_file', type=str, dest='map_file',
                       default=None)
 
 
-#---- functions used by multiple classes....
+# sub class used by multiple classes....
 
-def make_file_struct(obj):
-    file_struct = {}
-    with open(obj.input, 'rt') as fh:
-        file_struct['header']=fh.readline().strip()
-    assert 'Name' in file_struct['header'], 'BAF file must have SNP Name column'
-    std_cols = ['Name', 'Chr', 'Pos']
-    file_struct['n_std']=0
-    file_struct['std_cols']=[]
-    for c in std_cols:
-         match = re.search(c+'\t', file_struct['header'])
-         if match:
-            file_struct['n_std'] += 1
-            file_struct['std_cols'].append(c)
 
-    file_struct['n_per_sample']=0
-    file_struct['n_BAF']= file_struct['header'].count('B Allele Freq')
-    file_struct['n_LRR']= file_struct['header'].count('Log R Ratio')
-    file_struct['n_GT'] = file_struct['header'].count('GType')
-    assert file_struct['n_BAF'] >= 1, 'No BAF data present'
-    file_struct['n_per_sample'] += 1
-    assert file_struct['n_LRR'] >= 1, 'No LRR data present'
-    file_struct['n_per_sample'] += 1
-    assert file_struct['n_BAF'] == file_struct['n_LRR'], "n LRR and n BAF mismatch"
-    assert file_struct['n_GT'] == 0 or file_struct['n_GT'] == file_struct['n_BAF'], 'n GType and n BAF mismatch'
-    if(file_struct['n_GT']) >=1:
-         file_struct['n_per_sample'] += 1
-    file_struct['exp_n'] = file_struct['n_std'] + file_struct['n_BAF'] + file_struct['n_LRR'] + file_struct['n_GT']
-    file_struct['col_list'] = file_struct['header'].split('\t')
-    obj.file_struct = file_struct
-    
+# fileStructure Class
+class fileStructure():
+    def __init__(self, file: str):
+        self.file = file
+        self.get_header()
+        self.get_std()
+        self.n_BAF = self.n_data_cols('B Allele Freq')
+        self.n_LRR = self.n_data_cols('Log R Ratio')
+        self.n_GT = self.n_data_cols('GType')
+        self.n_per_sample = 2
+        if self.n_GT >= 1:
+            self.n_per_sample = 3
+        self.n_expected = len(self.std_cols) + self.n_per_sample * self.n_BAF
+        self.validate()
+
+    def get_header(self):
+        with open(self.file, 'rt') as fh:
+            self.header = fh.readline().strip().split('\t')
+            assert len(self.header) > 1, self.file + ' not TSV?'
+
+    def get_std(self):
+        assert 'Name' in self.header, 'BAF file must have SNP Name column'
+        possible_cols = ['Name', 'Chr', 'Position']
+        self.std_cols = []
+        for p in possible_cols:
+            if p in self.header[:3]:
+                self.std_cols.append(p)
+        assert(len(self.std_cols)) >= 1, 'Error in STD cols'
+
+    def n_data_cols(self, col):
+        return(sum(h.count(col) for h in t.header))
+
+    def validate(self):
+        assert self.n_BAF >= 1, 'Error: No BAF data present'
+        assert self.n_LRR >= 1, 'Error: No LRR data present'
+        assert self.n_BAF == self.n_LRR, 'Err: n BAF='+self.n_BAF+' n LRR='+self.n_LRR
+        assert self.n_GT == 0 or self.n_GT == self.n_BAF, 'n GType and n BAF mismatch'
+        assert len(self.header) == self.n_expected, 'more columns than expected'
 
 def get_file_order(obj):
     file_order = {}
     file_order['per_sample_cols'] = ['B Allele Freq', 'Log R Ratio', 'GType']
-    if obj.file_struct['n_per_sample']==2:
+    if obj.file_struct['n_per_sample'] == 2:
         file_order['per_sample_cols'] = file_order['per_sample_cols'][:-1]
-    
-    sample_tup_list = list(zip(*[iter(obj.file_struct['col_list'][obj.file_struct['n_std']:])]*obj.file_struct['n_per_sample'])) # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+
+    # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+    sample_tup_list = list(zip(
+        *[iter(obj.file_struct['col_list'][obj.file_struct['n_std']:])]*obj.file_struct['n_per_sample']))
     assert len(sample_tup_list) == obj.file_struct['n_BAF']
     # group()
     first_sample = sample_tup_list[0]
@@ -124,9 +136,11 @@ def get_file_order(obj):
         file_order['per_sample_cols'][0], file_order['per_sample_cols'][1] = file_order['per_sample_cols'][1], file_order['per_sample_cols'][0]
     file_order['samples'] = []
     for sample in sample_tup_list:
-        assert sample[0].split('.'+file_order['per_sample_cols'][0])[0] == sample[1].split('.'+file_order['per_sample_cols'][1])[0], 'Not all samples follow the same ordering of '+file_order['per_sample_cols'][0]+' '+file_order['per_sample_cols'][1]
-        file_order['samples'].append(sample[0].split('.'+file_order['per_sample_cols'][0])[0])
-    
+        assert sample[0].split('.'+file_order['per_sample_cols'][0])[0] == sample[1].split('.'+file_order['per_sample_cols'][1])[
+            0], 'Not all samples follow the same ordering of '+file_order['per_sample_cols'][0]+' '+file_order['per_sample_cols'][1]
+        file_order['samples'].append(sample[0].split(
+            '.'+file_order['per_sample_cols'][0])[0])
+
     obj.file_order = file_order
     return()
 
@@ -139,7 +153,7 @@ def dedup_samples(obj):
         if not sample in samples:
             samples.append(sample)
         else:
-            n=0
+            n = 0
             new_sample = sample
             while new_sample in samples:
                 n += 1
@@ -173,10 +187,7 @@ def pl_header(obj):
     return()
 
 
-
-
-
-#----- class defs
+# ----- class defs
 
 # '''class for data to split into n ind chunks'''
 class sampleDataPartition():
@@ -184,18 +195,18 @@ class sampleDataPartition():
         self.input = input
         self.target_n = target_n
         self.df = []
-        self.file_struct={}
+        self.file_struct = {}
         self._file_struct()
         self.clean_cols = []
         self._make_clean_cols()
         self.load_data()
-        self.samples= []
+        self.samples = []
         self.get_samples()
-        self.n_samples = len(self.samples) # total number in input file
-        self.n_per_partition=[]
+        self.n_samples = len(self.samples)  # total number in input file
+        self.n_per_partition = []
         self.define_partition_n()
         self.prefix = os.path.splitext(input)[0]
-    
+
     def _file_struct(self):
         file_struct(self.input)
 
@@ -207,17 +218,18 @@ class sampleDataPartition():
             pl.scan_csv(self.input, separator='\t')
             .sort([
                 pl.col("Chr"), pl.col("Position")],
-                )
+            )
         )
         self.df = q.collect()
-    
+
     def get_samples(self):
-        self.samples=self.df.select(pl.col("^*.GType$")).columns
-        self.samples=[s.split('.GType')[0] for s in self.samples]
+        self.samples = self.df.select(pl.col("^*.GType$")).columns
+        self.samples = [s.split('.GType')[0] for s in self.samples]
 
     def define_partition_n(self):
         if(self.n_samples < 2 * self.target_n):
-            print("target_n is larger than input sample_n / 2. Defaulting to splitting input in half")
+            print(
+                "target_n is larger than input sample_n / 2. Defaulting to splitting input in half")
             self.target_n, remainder = divmod(self.n_samples, 2)
             if(remainder > 0):
                 self.target_n += 1
@@ -234,13 +246,13 @@ class sampleDataPartition():
         all_samples = self.samples
         for j, n_part in enumerate(self.n_per_partition):
             part_samples = all_samples[:n_part]
-            part_cols = [[s+".GType", s+".Log R Ratio", s+".B Allele Freq"] for s in part_samples]
+            part_cols = [[s+".GType", s+".Log R Ratio",
+                          s+".B Allele Freq"] for s in part_samples]
             part_cols = [item for sublist in part_cols for item in sublist]
-            sub=self.df.select(["Name", "Chr", "Position"] + part_cols)
-            sub.write_csv(self.prefix + "-" + str(j+1) + '.partition', separator='\t')
+            sub = self.df.select(["Name", "Chr", "Position"] + part_cols)
+            sub.write_csv(self.prefix + "-" + str(j+1) +
+                          '.partition', separator='\t')
             all_samples = all_samples[n_part:]
-
-
 
 
 # '''class for data to split by ind'''
@@ -248,15 +260,15 @@ class sampleDataSplit():
     def __init__(self, input: str, prefix: str):
         self.input = input
         self.prefix = prefix
-        self.file_struct={}
+        self.file_struct = {}
         self._file_struct()
         self.clean_cols = []
         self._make_clean_cols()
         self.df = []
         self.load_data()
-        self.samples= []
+        self.samples = []
         self.get_samples()
-    
+
     def _file_struct(self.input):
         file_struct(self)
 
@@ -268,20 +280,20 @@ class sampleDataSplit():
             pl.scan_csv(self.input, separator='\t')
             .sort([
                 pl.col("Chr"), pl.col("Position")],
-                )
+            )
         )
         self.df = q.collect()
-    
+
     def get_samples(self):
-        self.samples=self.df.select(pl.col("^*.GType$")).columns
-        self.samples=[s.split('.GType')[0] for s in self.samples]
-    
+        self.samples = self.df.select(pl.col("^*.GType$")).columns
+        self.samples = [s.split('.GType')[0] for s in self.samples]
+
     def write_sample_data(self):
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
-            sub=self.df.select(["Name","Chr","Position", col_1, col_2, col_3])
+            sub = self.df.select(
+                ["Name", "Chr", "Position", col_1, col_2, col_3])
             sub.write_csv(self.prefix+'_'+s+'.txt', separator='\t')
-
 
 
 # '''class for GtLogRBaf to pfb'''
@@ -310,46 +322,52 @@ class pfbObj():
     def get_pfb(self):
         col_dict = dict(zip(self.header_cols, self.col_types))
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: self.header_cols, dtypes = col_dict)
-            .select( [*[pl.col(c) for c in  t.file_struct['std_cols']],pl.col("^*.B Allele Freq$") ])
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
+                        with_column_names=lambda cols: self.header_cols, dtypes=col_dict)
+            .select([*[pl.col(c) for c in t.file_struct['std_cols']], pl.col("^*.B Allele Freq$")])
             .with_columns([
-                pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
-                pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_not_nan()).alias('n_call'),
-                ])
+                pl.sum_horizontal(
+                    pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
+                pl.sum_horizontal(
+                    pl.col("^*.B Allele Freq$").is_not_nan()).alias('n_call'),
+            ])
             .fill_nan(0)
             .with_columns([
                 pl.fold(acc=pl.lit(0),
-                function=lambda acc, x: acc + x, exprs=pl.col("^*.B Allele Freq$")).alias("sum")
-                ])
+                        function=lambda acc, x: acc + x, exprs=pl.col("^*.B Allele Freq$")).alias("sum")
+            ])
             .with_columns([
-                ( (pl.col("sum") / (pl.col("n_call") - pl.col("n_miss")) )).alias("mean")
-                ])
+                ((pl.col("sum") / (pl.col("n_call") - pl.col("n_miss")))).alias("mean")
+            ])
             .fill_nan(0)
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
-                ])
-            .select([*t.file_struct['std_cols'],"BAF","n_miss","n_call"])
-            )
-        s= q.collect( streaming=True  )
-        s=s.filter(pl.col("n_miss")/(pl.col("n_miss")+pl.col("n_call")) < self.geno)
-        s=s.select([
-            "Name",
-            pl.when(pl.col("Name").str.contains("cnv|CNV")).then(pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
             ])
+            .select([*t.file_struct['std_cols'], "BAF", "n_miss", "n_call"])
+        )
+        s = q.collect(streaming=True)
+        s = s.filter(pl.col("n_miss")/(pl.col("n_miss") +
+                                       pl.col("n_call")) < self.geno)
+        s = s.select([
+            "Name",
+            pl.when(pl.col("Name").str.contains("cnv|CNV")).then(
+                pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
+        ])
         self.pfb = s
+
 
 def main():
     args = parser.parse_args()
-    tool=args.tool[0]
-    if(tool=='partition'):
-        data = sampleDataPartition(args.input,args.n_per_partition)
+    tool = args.tool[0]
+    if(tool == 'partition'):
+        data = sampleDataPartition(args.input, args.n_per_partition)
         data.write_partition_data()
 
-    if(tool=='split'):
+    if(tool == 'split'):
         data = sampleDataSplit(args.input, args.prefix)
         data.write_sample_data()
 
-    if(tool=='pfb'):
+    if(tool == 'pfb'):
         if not args.output:
             parser.error('pfb tool selected: --output must be specified')
         pfb = pfbObj(args.input, args.geno)
