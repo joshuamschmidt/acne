@@ -299,7 +299,7 @@ class sampleDataSplit():
 
 
 # '''class for GtLogRBaf to pfb'''
-class pfbObj():
+class pfb():
     def __init__(self, input: str, geno: float, map_file: None | str):
         self.input = input
         self.geno = geno
@@ -336,7 +336,7 @@ class pfbObj():
         s = s.filter(pl.col("n_miss")/(pl.col("n_miss") +
                                        pl.col("n_call")) < self.geno)
         s = s.select([
-            "Name",
+            *self.fileStructure.std_cols,
             pl.when(pl.col("Name").str.contains("cnv|CNV")).then(
                 pl.lit(2)).otherwise(pl.col("BAF")).alias("PFB")
         ])
