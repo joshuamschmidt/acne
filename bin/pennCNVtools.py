@@ -215,25 +215,26 @@ class sampleDataPartition():
         )
         self.df = q.collect()
 
-    def define_partition_n(self):
-        if(self.n_samples < 2 * self.target_n):
-            print(
-                "target_n is larger than input sample_n / 2. Defaulting to splitting input in half")
-            self.target_n, remainder = divmod(self.n_samples, 2)
+    def __define_partition_n(self):
+        n_samples = len(self.sampleOrder.unique_samples)
+        if(n_samples < 2 * self.target_n):
+            self.target_n, remainder = divmod(n_samples, 2)
             if(remainder > 0):
                 self.target_n += 1
-        n_partitions, remainder = divmod(self.n_samples, self.target_n)
-        self.n_per_partition = [self.target_n] * n_partitions
+            print(
+                "target_n is larger than input sample_n / 2. Defaulting to splitting input in half")
+            n_partitions, remainder = divmod(self.n_samples, self.target_n)
+        self.partition_ns = [self.target_n] * n_partitions
         if(remainder > n_partitions):
             add_all, remainder = divmod(remainder, n_partitions)
-            self.n_per_partition = [n + add_all for n in self.n_per_partition]
+            self.partition_ns = [n + add_all for n in self.partition_ns]
         if(remainder > 0):
             for i in range(remainder):
-                self.n_per_partition[i] += 1
+                self.partition_ns[i] += 1
 
     def write_partition_data(self):
         all_samples = self.samples
-        for j, n_part in enumerate(self.n_per_partition):
+        for j, n_part in enumerate(self.partition_ns):
             part_samples = all_samples[:n_part]
             part_cols = [[s+".GType", s+".Log R Ratio",
                           s+".B Allele Freq"] for s in part_samples]
