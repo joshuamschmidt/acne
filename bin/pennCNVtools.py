@@ -54,7 +54,7 @@ parser.add_argument('tool', metavar='TOOL', type=str, nargs=1, choices={
                     "partition", "split", "pfb"}, help='which tool to run')
 
 required.add_argument('--input', type=str, dest='input',
-                      help='input file from genome studio with GT, LogR and BAF cols per sample')
+                      help='input file with at minimum SNP Name and LRR and BAF cols per sample')
 
 optional.add_argument('--output', type=str,
                       dest='output',
@@ -266,20 +266,31 @@ class sampleDataSplit():
         self.fileStructure = fileStructure(self.input)
         self.sampleOrder = sampleOrder(self.fileStructure)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
-        self.load_data()
+        self.__load_data()
+        self.__write_sample_data()
 
-    def load_data(self):
+    def __load_data(self):
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema)
+            pl.scan_csv(
+                self.input,
+                separator='\t',
+                has_header=False,
+                skip_rows=1,
+                with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema,
+                )
             )
         self.df = q.collect()
 
-    def write_sample_data(self):
-        for s in self.samples:
-            col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
+    def __write_sample_data(self):
+        for sample in self.sampleOrder.unique_samples:
+            sample_cols = [sample + '.' + col  for col in self.sampleOrder.per_sample_cols  if col != 'GType']
             sub = self.df.select(
-                ["Name", "Chr", "Position", col_1, col_2, col_3])
-            sub.write_csv(self.prefix+'_'+s+'.txt', separator='\t')
+                ["Name", *sample_cols],
+                )
+            sub.write_csv(
+                self.prefix + '_' + sample + '.txt',
+                separator='\t',
+                )
 
 
 # '''class for GtLogRBaf to pfb'''
