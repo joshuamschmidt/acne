@@ -223,7 +223,7 @@ class sampleDataPartition():
                 self.target_n += 1
             print(
                 "target_n is larger than input sample_n / 2. Defaulting to splitting input in half")
-            n_partitions, remainder = divmod(self.n_samples, self.target_n)
+        n_partitions, remainder = divmod(n_samples, self.target_n)
         self.partition_ns = [self.target_n] * n_partitions
         if(remainder > n_partitions):
             add_all, remainder = divmod(remainder, n_partitions)
@@ -233,16 +233,16 @@ class sampleDataPartition():
                 self.partition_ns[i] += 1
 
     def write_partition_data(self):
-        all_samples = self.samples
-        for j, n_part in enumerate(self.partition_ns):
-            part_samples = all_samples[:n_part]
-            part_cols = [[s+".GType", s+".Log R Ratio",
-                          s+".B Allele Freq"] for s in part_samples]
-            part_cols = [item for sublist in part_cols for item in sublist]
-            sub = self.df.select(["Name", "Chr", "Position"] + part_cols)
-            sub.write_csv(self.prefix + "-" + str(j+1) +
+        all_samples = self.sampleOrder.unique_samples
+        for i, n in enumerate(self.partition_ns):
+            samples = all_samples[:n]
+            sample_cols = []
+            for sample in samples:
+                sample_cols += [sample + '.' + col for col in self.sampleOrder.per_sample_cols]
+            sub = self.df.select([*self.fileStructure.std_cols, *sample_cols])
+            sub.write_csv(self.prefix + "-" + str(i+1) +
                           '.partition', separator='\t')
-            all_samples = all_samples[n_part:]
+            all_samples = all_samples[n:]
 
 
 # '''class for data to split by ind'''
