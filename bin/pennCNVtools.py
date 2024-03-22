@@ -156,7 +156,7 @@ class sampleOrder():
                 while new_sample in self.unique_samples:
                     n += 1
                     new_sample = sample+':'+str(n)
-                samples.append(self.unique_samples)
+                self.unique_samples.append(new_sample)
 
     def __validate(self):
         assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
