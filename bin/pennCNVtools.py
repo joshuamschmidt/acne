@@ -263,28 +263,15 @@ class sampleDataSplit():
     def __init__(self, input: str, prefix: str):
         self.input = input
         self.prefix = prefix
-        self.file_struct = {}
-        self._file_struct()
-        self.clean_cols = []
-        self._make_clean_cols()
-        self.df = []
+        self.fileStructure = fileStructure(self.input)
+        self.sampleOrder = sampleOrder(self.fileStructure)
+        self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.load_data()
-        self.samples = []
-        self.get_samples()
-
-    def _file_struct(self.input):
-        file_struct(self)
-
-    def _make_clean_cols(self):
-        make_clean_cols(self.input)
 
     def load_data(self):
         q = (
-            pl.scan_csv(self.input, separator='\t')
-            .sort([
-                pl.col("Chr"), pl.col("Position")],
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema)
             )
-        )
         self.df = q.collect()
 
     def get_samples(self):
