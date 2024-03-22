@@ -197,37 +197,23 @@ class sampleDataPartition():
     def __init__(self, input: str, target_n: int):
         self.input = input
         self.target_n = target_n
-        self.df = []
-        self.file_struct = {}
-        self._file_struct()
-        self.clean_cols = []
-        self._make_clean_cols()
-        self.load_data()
-        self.samples = []
-        self.get_samples()
-        self.n_samples = len(self.samples)  # total number in input file
-        self.n_per_partition = []
-        self.define_partition_n()
+        self.fileStructure = fileStructure(self.input)
+        self.sampleOrder = sampleOrder(self.fileStructure)
+        self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
+        self.__load_data()
+        self.__define_partition_n()
         self.prefix = os.path.splitext(input)[0]
 
-    def _file_struct(self):
-        file_struct(self.input)
-
-    def _make_clean_cols(self.input):
-        make_clean_cols(self)
-
-    def load_data(self):
-        q = (
-            pl.scan_csv(self.input, separator='\t')
-            .sort([
-                pl.col("Chr"), pl.col("Position")],
+    def __load_data(self):
+        q = (pl.scan_csv(
+            self.input,
+            separator='\t',
+            has_header=False,
+            skip_rows=1,
+            with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema,
             )
         )
         self.df = q.collect()
-
-    def get_samples(self):
-        self.samples = self.df.select(pl.col("^*.GType$")).columns
-        self.samples = [s.split('.GType')[0] for s in self.samples]
 
     def define_partition_n(self):
         if(self.n_samples < 2 * self.target_n):
