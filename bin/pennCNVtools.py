@@ -274,10 +274,6 @@ class sampleDataSplit():
             )
         self.df = q.collect()
 
-    def get_samples(self):
-        self.samples = self.df.select(pl.col("^*.GType$")).columns
-        self.samples = [s.split('.GType')[0] for s in self.samples]
-
     def write_sample_data(self):
         for s in self.samples:
             col_1, col_2, col_3 = s+".GType", s+".Log R Ratio", s+".B Allele Freq"
