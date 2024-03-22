@@ -72,6 +72,12 @@ optional.add_argument('--geno', type=float, dest='geno',
                       help='SNPs/markers with missingness fraction more than this are excluded from PFB',
                       default=0.02)
 
+'''
+TODO:
+infer geno missingness on GType not BAF
+Add ability to set median LRR
+also filter samples with optional sample list.
+'''
 # sub class defs
 
 class fileStructure():
