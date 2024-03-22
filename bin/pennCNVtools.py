@@ -299,8 +299,8 @@ class sampleDataSplit():
 
 
 # '''class for GtLogRBaf to pfb'''
-class pfb():
-    def __init__(self, input: str, geno: float, map_file: None | str):
+class pfbObj():
+    def __init__(self, input: str, geno: float):
         self.input = input
         self.geno = geno
         self.fileStructure = fileStructure(self.input)
