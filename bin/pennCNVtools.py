@@ -119,9 +119,15 @@ class fileStructure():
         assert self.n_GT == 0 or self.n_GT == self.n_BAF, 'n GType and n BAF mismatch'
         assert len(self.header) == self.n_expected, 'more columns than expected'
 
+
 class sampleOrder():
     def __init__(self, fileStructure):
-        sample_tup_list = list(zip(*[iter(fileStructure.header[len(fileStructure.std_cols):])] * fileStructure.n_per_sample))
+        self.__get_samples(fileStructure)
+        self.__dedup_samples()
+        self.__validate()
+
+    def __get_samples(self, fileStructure):
+        sample_tups = list(zip(*[iter(fileStructure.header[len(fileStructure.std_cols):])] * fileStructure.n_per_sample))
         '''
         fold the header into a list of tuples
         size n=n_per_sample.
@@ -129,37 +135,38 @@ class sampleOrder():
         https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
         '''
 
-        first_sample = sample_tup_list[0]
+        first_sample = sample_tups[0]
         self.per_sample_cols = []
         for i in range(fileStructure.n_per_sample):
             self.per_sample_cols.append(first_sample[i].split('.')[1])
 
-        self.sample_list = []
-        for i in range(len(sample_tup_list)):
+        self.samples = []
+        for i in range(len(sample_tups)):
             for j in range(len(self.per_sample_cols)):
                 if j == 0:
-                    this_sample = sample_tup_list[i][j].split('.'+self.per_sample_cols[j])[0]
-                    self.sample_list.append(this_sample)
+                    this_sample = sample_tups[i][j].split('.'+self.per_sample_cols[j])[0]
+                    self.samples.append(this_sample)
                 if j >= 1:
-                    assert sample_tup_list[i][j].split('.'+self.per_sample_cols[j])[0] == this_sample, 'Err invalid ordering of sample data: from sample: '+this_sample
+                    assert sample_tups[i][j].split('.'+self.per_sample_cols[j])[0] == this_sample, 'Err invalid ordering of sample data: from sample: '+this_sample
 
+    def __dedup_samples(self):
+        if np.size(np.unique(self.samples)) == np.size(self.samples):
+            self.unique_samples = self.samples
+            return()
+        self.unique_samples = []
+        for sample in self.samples:
+            if sample not in self.unique_samples:
+                samples.append(self.unique_samples)
+            else:
+                n = 0
+                new_sample = sample
+                while new_sample in self.unique_samples:
+                    n += 1
+                    new_sample = sample+':'+str(n)
+                samples.append(self.unique_samples)
 
-def dedup_samples(obj):
-    if np.size(np.unique(obj.file_order['samples'])) == np.size(obj.file_order['samples']):
-        return()
-    samples = []
-    for sample in obj.file_order['samples']:
-        if not sample in samples:
-            samples.append(sample)
-        else:
-            n = 0
-            new_sample = sample
-            while new_sample in samples:
-                n += 1
-                new_sample = sample+':'+str(n)
-            samples.append(new_sample)
-    obj.file_order['samples'] = samples
-    return()
+    def __validate(self):
+        assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
 
 
 def pl_header(obj):
