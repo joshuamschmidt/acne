@@ -119,30 +119,29 @@ class fileStructure():
         assert self.n_GT == 0 or self.n_GT == self.n_BAF, 'n GType and n BAF mismatch'
         assert len(self.header) == self.n_expected, 'more columns than expected'
 
-def get_file_order(obj):
-    file_order = {}
-    file_order['per_sample_cols'] = ['B Allele Freq', 'Log R Ratio', 'GType']
-    if obj.file_struct['n_per_sample'] == 2:
-        file_order['per_sample_cols'] = file_order['per_sample_cols'][:-1]
+class sampleOrder():
+    def __init__(self, fileStructure):
+        sample_tup_list = list(zip(*[iter(fileStructure.header[len(fileStructure.std_cols):])] * fileStructure.n_per_sample))
+        '''
+        fold the header into a list of tuples
+        size n=n_per_sample.
+        idiom: zip(*[iter(L)]*2):
+        https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
+        '''
 
-    # zip(*[iter(L)]*2) thankyou stackoverflow: https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
-    sample_tup_list = list(zip(
-        *[iter(obj.file_struct['col_list'][obj.file_struct['n_std']:])]*obj.file_struct['n_per_sample']))
-    assert len(sample_tup_list) == obj.file_struct['n_BAF']
-    # group()
-    first_sample = sample_tup_list[0]
-    match = re.search(file_order['per_sample_cols'][0], first_sample[0])
-    if not match:
-        file_order['per_sample_cols'][0], file_order['per_sample_cols'][1] = file_order['per_sample_cols'][1], file_order['per_sample_cols'][0]
-    file_order['samples'] = []
-    for sample in sample_tup_list:
-        assert sample[0].split('.'+file_order['per_sample_cols'][0])[0] == sample[1].split('.'+file_order['per_sample_cols'][1])[
-            0], 'Not all samples follow the same ordering of '+file_order['per_sample_cols'][0]+' '+file_order['per_sample_cols'][1]
-        file_order['samples'].append(sample[0].split(
-            '.'+file_order['per_sample_cols'][0])[0])
+        first_sample = sample_tup_list[0]
+        self.per_sample_cols = []
+        for i in range(fileStructure.n_per_sample):
+            self.per_sample_cols.append(first_sample[i].split('.')[1])
 
-    obj.file_order = file_order
-    return()
+        self.sample_list = []
+        for i in range(len(sample_tup_list)):
+            for j in range(len(self.per_sample_cols)):
+                if j == 0:
+                    this_sample = sample_tup_list[i][j].split('.'+self.per_sample_cols[j])[0]
+                    self.sample_list.append(this_sample)
+                if j >= 1:
+                    assert sample_tup_list[i][j].split('.'+self.per_sample_cols[j])[0] == this_sample, 'Err invalid ordering of sample data: from sample: '+this_sample
 
 
 def dedup_samples(obj):
