@@ -84,23 +84,23 @@ optional.add_argument('--map_file', type=str, dest='map_file',
 class fileStructure():
     def __init__(self, file: str):
         self.file = file
-        self.get_header()
-        self.get_std()
-        self.n_BAF = self.n_data_cols('B Allele Freq')
-        self.n_LRR = self.n_data_cols('Log R Ratio')
+        self.__get_header()
+        self.__get_std()
+        self.n_BAF = self.__n_data_cols('B Allele Freq')
+        self.n_LRR = self.__n_data_cols('Log R Ratio')
         self.n_per_sample = 2
-        self.n_GT = self.n_data_cols('GType')
+        self.n_GT = self.__n_data_cols('GType')
         if self.n_GT >= 1:
             self.n_per_sample = 3
         self.n_expected = len(self.std_cols) + self.n_per_sample * self.n_BAF
-        self.validate()
+        self.__validate()
 
-    def get_header(self):
+    def __get_header(self):
         with open(self.file, 'rt') as fh:
             self.header = fh.readline().strip().split('\t')
             assert len(self.header) > 1, self.file + ' not TSV?'
 
-    def get_std(self):
+    def __get_std(self):
         assert 'Name' in self.header, 'BAF file must have SNP Name column'
         possible_cols = ['Name', 'Chr', 'Position']
         self.std_cols = []
@@ -109,10 +109,10 @@ class fileStructure():
                 self.std_cols.append(p)
         assert(len(self.std_cols)) >= 1, 'Error in STD cols'
 
-    def n_data_cols(self, col):
+    def __n_data_cols(self, col):
         return(sum(h.count(col) for h in t.header))
 
-    def validate(self):
+    def __validate(self):
         assert self.n_BAF >= 1, 'Error: No BAF data present'
         assert self.n_LRR >= 1, 'Error: No LRR data present'
         assert self.n_BAF == self.n_LRR, 'Err: n BAF='+self.n_BAF+' n LRR='+self.n_LRR
