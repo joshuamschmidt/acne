@@ -72,11 +72,6 @@ optional.add_argument('--geno', type=float, dest='geno',
                       help='SNPs/markers with missingness fraction more than this are excluded from PFB',
                       default=0.02)
 
-optional.add_argument('--map_file', type=str, dest='map_file',
-                      help='file of Name, Chr, Pos to update co-ordinates in the PFB file',
-                      default=None)
-
-
 # sub class defs
 
 class fileStructure():
@@ -154,7 +149,7 @@ class sampleOrder():
         self.unique_samples = []
         for sample in self.samples:
             if sample not in self.unique_samples:
-                samples.append(self.unique_samples)
+                self.unique_samples.append(sample)
             else:
                 n = 0
                 new_sample = sample
