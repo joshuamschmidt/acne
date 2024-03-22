@@ -267,7 +267,6 @@ class sampleDataSplit():
         self.sampleOrder = sampleOrder(self.fileStructure)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.__load_data()
-        self.__write_sample_data()
 
     def __load_data(self):
         q = (
@@ -281,7 +280,7 @@ class sampleDataSplit():
             )
         self.df = q.collect()
 
-    def __write_sample_data(self):
+    def write_sample_data(self):
         for sample in self.sampleOrder.unique_samples:
             sample_cols = [sample + '.' + col  for col in self.sampleOrder.per_sample_cols  if col != 'GType']
             sub = self.df.select(
