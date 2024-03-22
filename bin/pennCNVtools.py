@@ -77,10 +77,8 @@ optional.add_argument('--map_file', type=str, dest='map_file',
                       default=None)
 
 
-# sub class used by multiple classes....
+# sub class defs
 
-
-# fileStructure Class
 class fileStructure():
     def __init__(self, file: str):
         self.file = file
@@ -168,29 +166,27 @@ class sampleOrder():
     def __validate(self):
         assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
 
+class plSchema():
+    def __init__(self, fileStructure, sampleOrder):
+        self.__make_schema(fileStructure, sampleOrder)
 
-def pl_header(obj):
-    type_d = {
-        'Name': pl.Utf8,
-        'Chr': pl.Categorical,
-        'Position': pl.UInt32,
-        'GType': pl.Categorical,
-        'B Allele Freq': pl.Float32,
-        'Log R Ratio': pl.Float32
-    }
+    def __make_schema(self, fileStructure, sampleOrder):
+        types = {
+            'Name': pl.Utf8,
+            'Chr': pl.Categorical,
+            'Position': pl.UInt32,
+            'GType': pl.Categorical,
+            'B Allele Freq': pl.Float32,
+            'Log R Ratio': pl.Float32
+            }
+        self.schema = {}
 
-    col_types = []
-    header_cols = []
-    for c in obj.file_struct['std_cols']:
-        col_types.append(type_d[c])
-        header_cols.append(c)
-    for s in obj.file_order['samples']:
-        for i in range(len(obj.file_order['per_sample_cols'])):
-            col_types.append(type_d[obj.file_order['per_sample_cols'][i]])
-            header_cols.append(s+'.'+obj.file_order['per_sample_cols'][i])
-    obj.col_types = col_types
-    obj.header_cols = header_cols
-    return()
+        for c in fileStructure.std_cols:
+            self.schema[c] = types[c]
+
+        for s in sampleOrder.unique_samples:
+            for c in sampleOrder.per_sample_cols:
+                self.schema[s + '.' + c] = types[c]
 
 
 # ----- class defs
