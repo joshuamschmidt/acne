@@ -303,30 +303,15 @@ class pfbObj():
     def __init__(self, input: str, geno: float, map_file: None | str):
         self.input = input
         self.geno = geno
-        self._make_file_struct()
-        self._get_file_order()
-        self._dedup_samples()
-        self._pl_header()
-        self.get_pfb()
+        self.fileStructure = fileStructure(self.input)
+        self.sampleOrder = sampleOrder(self.fileStructure)
+        self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
+        self.__get_pfb()
 
-    def _make_file_struct(self):
-        make_file_struct(self)
-
-    def _get_file_order(self):
-        get_file_order(self)
-
-    def _dedup_samples(self):
-        dedup_samples(self)
-
-    def _pl_header(self):
-        pl_header(self)
-
-    def get_pfb(self):
-        col_dict = dict(zip(self.header_cols, self.col_types))
+    def __get_pfb(self):
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
-                        with_column_names=lambda cols: self.header_cols, dtypes=col_dict)
-            .select([*[pl.col(c) for c in t.file_struct['std_cols']], pl.col("^*.B Allele Freq$")])
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema)
+            .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
             .with_columns([
                 pl.sum_horizontal(
                     pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
@@ -345,7 +330,7 @@ class pfbObj():
             .with_columns([
                 ((pl.col("mean")*1000+0.5).cast(pl.Int64)/1000).alias("BAF")
             ])
-            .select([*t.file_struct['std_cols'], "BAF", "n_miss", "n_call"])
+            .select([*self.fileStructure.std_cols, "BAF", "n_miss", "n_call"])
         )
         s = q.collect(streaming=True)
         s = s.filter(pl.col("n_miss")/(pl.col("n_miss") +
