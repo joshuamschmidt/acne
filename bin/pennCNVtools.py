@@ -4,7 +4,6 @@ import numpy as np
 import polars as pl
 import textwrap
 import os
-import re
 
 '''required and optional argument parser'''
 
@@ -18,14 +17,14 @@ parser = argparse.ArgumentParser(prog='pennCNVtools',
                         for large input files (n ind > 500). It will try
                         to balance e.g. if n ind = 560, and n_per_partition
                         is 250 it will produce two files with 280 inds,
-                        not 250 + 310 nor 250 + 250 + 60. 
+                        not 250 + 310 nor 250 + 250 + 60.
 
 
                         Option "pfb" Generates a PFB file for PENN CNV
 
                         Output Column headers are:
-                        Name    Chr     Position        PFB 
-                        
+                        Name    Chr     Position        PFB
+
                         Option "split" Generates a ind file for
                         PENN CNV
 
@@ -73,12 +72,12 @@ optional.add_argument('--geno', type=float, dest='geno',
                       default=0.02)
 
 '''
-TODO:
-infer geno missingness on GType not BAF
+TODO: infer geno missingness on GType not BAF
 Add ability to set median LRR
 also filter samples with optional sample list.
 '''
 # sub class defs
+
 
 class fileStructure():
     def __init__(self, file: str):
@@ -109,7 +108,7 @@ class fileStructure():
         assert(len(self.std_cols)) >= 1, 'Error in STD cols'
 
     def __n_data_cols(self, col):
-        return(sum(h.count(col) for h in t.header))
+        return(sum(h.count(col) for h in self.fileStructure.header))
 
     def __validate(self):
         assert self.n_BAF >= 1, 'Error: No BAF data present'
@@ -167,6 +166,7 @@ class sampleOrder():
     def __validate(self):
         assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
 
+
 class plSchema():
     def __init__(self, fileStructure, sampleOrder):
         self.__make_schema(fileStructure, sampleOrder)
@@ -189,8 +189,8 @@ class plSchema():
             for c in sampleOrder.per_sample_cols:
                 self.schema[s + '.' + c] = types[c]
 
-
 # ----- class defs
+
 
 # '''class for data to split into n ind chunks'''
 class sampleDataPartition():
