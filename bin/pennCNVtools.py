@@ -5,7 +5,6 @@ import polars as pl
 import textwrap
 import os
 
-
 '''required and optional argument parser'''
 
 parser = argparse.ArgumentParser(prog='pennCNVtools',
@@ -302,7 +301,7 @@ class sampleDataSplit():
                     ["Name", *sample_cols],
                     )
                 sub.write_csv(
-                    self.prefix + '_' + sample.replace(":","_") + '.txt',
+                    self.prefix + '_' + sample.replace(":", "_") + '.txt',
                     separator='\t',
                     )
 
