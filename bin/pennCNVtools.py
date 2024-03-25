@@ -130,6 +130,7 @@ class sampleOrder():
         self.samplefilter = samplefilter
         self.__get_samples(fileStructure)
         self.__dedup_samples()
+        self.__filter_samples()
         self.__validate()
 
     def __get_samples(self, fileStructure):
@@ -154,15 +155,6 @@ class sampleOrder():
                 if j >= 1:
                     assert sample_tups[i][j].split('.'+self.per_sample_cols[j])[0] == this_sample, 'Err invalid ordering of sample data: from sample: '+this_sample
 
-    def _filter_samples(self):
-        self.to_filter = []
-        if self.samplefilter is not None:
-            with open(self.samplefilter, 'rt') as sh:
-                for line in sh:
-                    if not line.startswith("Sample_ID"):
-                        line = line.strip().split('\t')
-                            if line[1] == 0:
-                                self.to_filter.append(line[0])
 
     def __dedup_samples(self):
         if np.size(np.unique(self.samples)) == np.size(self.samples):
@@ -179,6 +171,17 @@ class sampleOrder():
                     n += 1
                     new_sample = sample+':'+str(n)
                 self.unique_samples.append(new_sample)
+
+    def _filter_samples(self):
+        self.to_filter = []
+        if self.samplefilter is not None:
+            with open(self.samplefilter, 'rt') as sh:
+                for line in sh:
+                    if not line.startswith("Sample_ID"):
+                        line = line.strip().split('\t')
+                        if int(line[1]) == 0:
+                            self.to_filter.append(line[0])
+            self.filter_idx=[self.samples.index(f) for f in self.to_filter if f in samples]
 
     def __validate(self):
         assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
