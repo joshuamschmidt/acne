@@ -181,7 +181,7 @@ class sampleOrder():
                         if int(line[1]) == 0:
                             self.to_filter.append(line[0])
             self.filter_idx=[self.samples.index(f) for f in self.to_filter if f in samples]
-            self.pl_filter=[pl.col(self.unique_samples[idx]+'.'+c) for c in self.per_sample_cols for idx in self.filter_idx]
+            self.pl_filter=[self.unique_samples[idx]+'.'+c for c in self.per_sample_cols for idx in self.filter_idx]
 
     def __validate(self):
         assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
