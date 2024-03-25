@@ -270,11 +270,12 @@ class sampleDataPartition():
 
 # '''class for data to split by ind'''
 class sampleDataSplit():
-    def __init__(self, input: str, prefix: str):
+    def __init__(self, input: str, prefix: str, samplefilter: str):
         self.input = input
         self.prefix = prefix
+        self.samplefilter = samplefilter
         self.fileStructure = fileStructure(self.input)
-        self.sampleOrder = sampleOrder(self.fileStructure)
+        self.sampleOrder = sampleOrder(self.fileStructure, self.samplefilter)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.__load_data()
 
@@ -287,19 +288,21 @@ class sampleDataSplit():
                 skip_rows=1,
                 with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema,
                 )
+            .drop(self.sampleOrder.pl_filter)
             )
         self.df = q.collect()
 
     def write_sample_data(self):
-        for sample in self.sampleOrder.unique_samples:
-            sample_cols = [sample + '.' + col  for col in self.sampleOrder.per_sample_cols  if col != 'GType']
-            sub = self.df.select(
-                ["Name", *sample_cols],
-                )
-            sub.write_csv(
-                self.prefix + '_' + sample + '.txt',
-                separator='\t',
-                )
+        for i, sample in enumerate(self.sampleOrder.unique_samples):
+            if i not in self.sampleOrder.filter_idx:
+                sample_cols = [sample + '.' + col for col in self.sampleOrder.per_sample_cols if col != 'GType']
+                sub = self.df.select(
+                    ["Name", *sample_cols],
+                    )
+                sub.write_csv(
+                    self.prefix + '_' + sample + '.txt',
+                    separator='\t',
+                    )
 
 
 # '''class for GtLogRBaf to pfb'''
