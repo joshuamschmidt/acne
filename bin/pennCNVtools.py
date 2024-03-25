@@ -73,7 +73,8 @@ optional.add_argument('--geno', type=float, dest='geno',
 
 optional.add_argument('--samplefilter', type=str,
                       dest='samplefilter',
-                      help='samplefilter is 2 two col file listing sample namne and binary flag (1 == keep, 0 = filter)')
+                      help='samplefilter is 2 two col file listing sample namne and binary flag (1 == keep, 0 = filter)',
+                      default=None)
 
 
 '''
@@ -124,7 +125,7 @@ class fileStructure():
 
 
 class sampleOrder():
-    def __init__(self, fileStructure):
+    def __init__(self, fileStructure, samplefilter: str):
         self.__get_samples(fileStructure)
         self.__dedup_samples()
         self.__validate()
@@ -297,6 +298,7 @@ class pfbObj():
     def __get_pfb(self):
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema)
+            .drop([*[pl.col(c) for c in self.sampleOrder.drop_samples]])
             .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
             .with_columns([
                 pl.sum_horizontal(
