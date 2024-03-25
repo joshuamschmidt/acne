@@ -155,7 +155,6 @@ class sampleOrder():
                 if j >= 1:
                     assert sample_tups[i][j].split('.'+self.per_sample_cols[j])[0] == this_sample, 'Err invalid ordering of sample data: from sample: '+this_sample
 
-
     def __dedup_samples(self):
         if np.size(np.unique(self.samples)) == np.size(self.samples):
             self.unique_samples = self.samples
@@ -172,7 +171,7 @@ class sampleOrder():
                     new_sample = sample+':'+str(n)
                 self.unique_samples.append(new_sample)
 
-    def _filter_samples(self):
+    def __filter_samples(self):
         self.to_filter = []
         if self.samplefilter is not None:
             with open(self.samplefilter, 'rt') as sh:
@@ -182,6 +181,7 @@ class sampleOrder():
                         if int(line[1]) == 0:
                             self.to_filter.append(line[0])
             self.filter_idx=[self.samples.index(f) for f in self.to_filter if f in samples]
+            self.pl_filter=[pl.col(self.unique_samples[idx]+'.'+c) for c in self.per_sample_cols for idx in self.filter_idx]
 
     def __validate(self):
         assert len(self.samples) == len(self.unique_samples), 'Error when dedup samples'
@@ -312,7 +312,7 @@ class pfbObj():
     def __get_pfb(self):
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema)
-            .drop([*[pl.col(c) for c in self.sampleOrder.drop_samples]])
+            .drop(self.sampleOrder.pl_filter)
             .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
             .with_columns([
                 pl.sum_horizontal(
