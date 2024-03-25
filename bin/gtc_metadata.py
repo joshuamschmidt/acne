@@ -34,7 +34,7 @@ required.add_argument('--metadata', type=str, dest='metadata',
                       help='gtc metadata')
 
 required.add_argument('--outfile', type=str,
-                      dest='output',
+                      dest='outfile',
                       help='name of output file')
 
 optional.add_argument('--samplesheet', type=str, dest='samplesheet',
