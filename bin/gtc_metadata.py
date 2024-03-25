@@ -35,17 +35,43 @@ required.add_argument('--metadata', type=str, dest='metadata',
 
 required.add_argument('--output', type=str,
                       dest='output',
-                      help='output:\nif tool is "pfb", then creates a pfb file\nit has no effect for other tools')
+                      help='name of output file')
 
-optional.add_argument('--samplesheet', type=str, dest='samples',
+optional.add_argument('--samplesheet', type=str, dest='samplesheet',
                       help='genome studio sample sheet. required to update sample names from sentrix barcode + pos format',
                       default=None)
 
-optional.add_argument('--genorate', type=float, dest='geno',
-                      help='batch prefix to attach to ind sample files when splitting',
-                      default=None)
+optional.add_argument('--callrate', type=float, dest='callrate',
+                      help='minimum callrate to include sample',
+                      default=0.0)
 
 optional.add_argument('--lrrsd', type=float, dest='lrrsd',
                       help='LRR deviation threshold (corresponds to qclrrsd in PENN CNV)',
                       default=None)
 
+
+def _not_header_line(s):
+    # return true if a line equals "Sample_ID"
+    return not s.startswith("Sample_ID")
+
+
+def main():
+    args = parser.parse_args()
+    if(args.samplesheet is not None):
+        samples = {}
+        cols = {}
+        with open(args.samplesheet, 'rt') as fh:
+            for line in dropwhile(_not_header_line, fh):
+                if line.startswith("Sample_ID"):
+                    line = line.strip().split(',')
+                    cols['barcode'] = line.index('SentrixBarcode_A')
+                    cols['position'] = line.index('SentrixPosition_A')
+                    cols['sample'] = line.index('Sample_ID')
+                else:
+                    line = line.strip().split(',')
+                    samples[line[cols['barcode']] + '_' + line[cols['position']]] = line[cols['sample']]
+
+
+
+if __name__ == '__main__':
+    main()
