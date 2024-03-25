@@ -180,7 +180,7 @@ class sampleOrder():
                         line = line.strip().split('\t')
                         if int(line[1]) == 0:
                             self.to_filter.append(line[0])
-            self.filter_idx=[self.samples.index(f) for f in self.to_filter if f in samples]
+            self.filter_idx=[self.samples.index(f) for f in self.to_filter if f in self.samples]
             self.pl_filter=[self.unique_samples[idx]+'.'+c for c in self.per_sample_cols for idx in self.filter_idx]
         else:
             self.filter_idx = []
@@ -258,7 +258,7 @@ class sampleDataPartition():
                 self.partition_ns[i] += 1
 
     def write_partition_data(self):
-        all_samples = [for i, sample in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
+        all_samples = [s for i, s in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
         for i, n in enumerate(self.partition_ns):
             samples = all_samples[:n]
             sample_cols = []
@@ -302,7 +302,7 @@ class sampleDataSplit():
                     ["Name", *sample_cols],
                     )
                 sub.write_csv(
-                    self.prefix + '_' + sample + '.txt',
+                    self.prefix + '_' + sample.replace(":","_") + '.txt',
                     separator='\t',
                     )
 
