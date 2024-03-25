@@ -115,7 +115,7 @@ class fileStructure():
         assert(len(self.std_cols)) >= 1, 'Error in STD cols'
 
     def __n_data_cols(self, col):
-        return(sum(h.count(col) for h in self.fileStructure.header))
+        return(sum(h.count(col) for h in self.header))
 
     def __validate(self):
         assert self.n_BAF >= 1, 'Error: No BAF data present'
@@ -140,14 +140,6 @@ class sampleOrder():
         idiom: zip(*[iter(L)]*2):
         https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
         '''
-        filter_l = []
-        if self.samplefilter is not None:
-            with open(self.samplefilter, 'rt') as sh:
-                for line in sh:
-                    if not line.startswith("Sample_ID"):
-                        line = line.strip().split('\t')
-                            if line[1] == 0:
-                                filter_l.append(line[0])
         first_sample = sample_tups[0]
         self.per_sample_cols = []
         for i in range(fileStructure.n_per_sample):
@@ -161,6 +153,16 @@ class sampleOrder():
                     self.samples.append(this_sample)
                 if j >= 1:
                     assert sample_tups[i][j].split('.'+self.per_sample_cols[j])[0] == this_sample, 'Err invalid ordering of sample data: from sample: '+this_sample
+
+    def _filter_samples(self):
+        self.to_filter = []
+        if self.samplefilter is not None:
+            with open(self.samplefilter, 'rt') as sh:
+                for line in sh:
+                    if not line.startswith("Sample_ID"):
+                        line = line.strip().split('\t')
+                            if line[1] == 0:
+                                self.to_filter.append(line[0])
 
     def __dedup_samples(self):
         if np.size(np.unique(self.samples)) == np.size(self.samples):
