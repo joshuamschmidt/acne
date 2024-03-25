@@ -217,11 +217,12 @@ class plSchema():
 
 # '''class for data to split into n ind chunks'''
 class sampleDataPartition():
-    def __init__(self, input: str, target_n: int):
+    def __init__(self, input: str, target_n: int, samplefilter: str):
         self.input = input
         self.target_n = target_n
+        self.samplefilter = samplefilter
         self.fileStructure = fileStructure(self.input)
-        self.sampleOrder = sampleOrder(self.fileStructure)
+        self.sampleOrder = sampleOrder(self.fileStructure, self.samplefilter)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.__load_data()
         self.__define_partition_n()
@@ -235,11 +236,12 @@ class sampleDataPartition():
             skip_rows=1,
             with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema,
             )
+            .drop(self.sampleOrder.pl_filter)
         )
         self.df = q.collect()
 
     def __define_partition_n(self):
-        n_samples = len(self.sampleOrder.unique_samples)
+        n_samples = len(self.sampleOrder.unique_samples) - len(self.sampleOrder.filter_idx)
         if(n_samples < 2 * self.target_n):
             self.target_n, remainder = divmod(n_samples, 2)
             if(remainder > 0):
@@ -256,7 +258,7 @@ class sampleDataPartition():
                 self.partition_ns[i] += 1
 
     def write_partition_data(self):
-        all_samples = self.sampleOrder.unique_samples
+        all_samples = [for i, sample in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
         for i, n in enumerate(self.partition_ns):
             samples = all_samples[:n]
             sample_cols = []
