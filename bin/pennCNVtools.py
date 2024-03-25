@@ -301,11 +301,12 @@ class sampleDataSplit():
 
 # '''class for GtLogRBaf to pfb'''
 class pfbObj():
-    def __init__(self, input: str, geno: float):
+    def __init__(self, input: str, geno: float, samplefilter: str):
         self.input = input
         self.geno = geno
+        self.samplefilter = samplefilter
         self.fileStructure = fileStructure(self.input)
-        self.sampleOrder = sampleOrder(self.fileStructure)
+        self.sampleOrder = sampleOrder(self.fileStructure, self.samplefilter)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.__get_pfb()
 
