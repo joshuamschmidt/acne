@@ -5,6 +5,7 @@ import polars as pl
 import textwrap
 import os
 
+
 '''required and optional argument parser'''
 
 parser = argparse.ArgumentParser(prog='pennCNVtools',
@@ -126,6 +127,7 @@ class fileStructure():
 
 class sampleOrder():
     def __init__(self, fileStructure, samplefilter: str):
+        self.samplefilter = samplefilter
         self.__get_samples(fileStructure)
         self.__dedup_samples()
         self.__validate()
@@ -138,7 +140,14 @@ class sampleOrder():
         idiom: zip(*[iter(L)]*2):
         https://stackoverflow.com/questions/23286254/how-to-convert-a-list-to-a-list-of-tuples*2))
         '''
-
+        filter_l = []
+        if self.samplefilter is not None:
+            with open(self.samplefilter, 'rt') as sh:
+                for line in sh:
+                    if not line.startswith("Sample_ID"):
+                        line = line.strip().split('\t')
+                            if line[1] == 0:
+                                filter_l.append(line[0])
         first_sample = sample_tups[0]
         self.per_sample_cols = []
         for i in range(fileStructure.n_per_sample):
