@@ -4,22 +4,23 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { PFBTOBED              } from '../modules/local/pfb_to_bed'
-include { BEDTOOLS_MAKEWINDOWS  } from '../modules/nf-core/bedtools/split_gs'
-include { BEDTOOLS_NUC          } from '../modules/local/bedtools/nuc'
-
+include { PFBTOBED     } from '../modules/local/pfb_to_bed'
+include { BEDTOOLS_NUC } from '../modules/local/bedtools/nuc'
+include { EXCTRACTGC   } from '../modules/local/extract_gc'
 
 workflow GC_CONTENT {
   take:
-    gs_file
+    ch_pfb // channel: [ val(meta), path(pfb) ]
+    ch_fasta // channel: [ path(fasta) ]
+    ch_fai   // channel: [ path(fai) ]
 
   main:
-    MAKEPFB(gs_file)
-    SPLITGS(gs_file)
-    Channel
-        .from( MAKEPFB.out )
-        .first()
-        .set { gc_in_ch }
-    gc_in_ch.view()
-    //PENNCNV_GC(gc_in_ch, Channel.fromPath(params.gc_model))
+    ch_versions = Channel.empty()
+
+    PFBTOBED(ch_pfb)
+    BEDTOOLS_NUC(PFBTOBED.out.bed, ch_fasta, ch_fai)
+    EXCTRACTGC(BEDTOOLS_NUC.out.output)
+  
+  emit:
+  gc      = EXCTRACTGC.out.gc     // channel: [ val(meta), path(gc) ]
 }
