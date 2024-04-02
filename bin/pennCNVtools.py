@@ -357,17 +357,17 @@ def main():
     args = parser.parse_args()
     tool = args.tool[0]
     if(tool == 'partition'):
-        data = sampleDataPartition(args.input, args.n_per_partition)
+        data = sampleDataPartition(args.input, args.n_per_partition, args.samplefilter)
         data.write_partition_data()
 
     if(tool == 'split'):
-        data = sampleDataSplit(args.input, args.prefix)
+        data = sampleDataSplit(args.input, args.prefix, args.samplefilter)
         data.write_sample_data()
 
     if(tool == 'pfb'):
         if not args.output:
             parser.error('pfb tool selected: --output must be specified')
-        pfb = pfbObj(args.input, args.geno)
+        pfb = pfbObj(args.input, args.geno, args.samplefilter)
         pfb.pfb.write_csv(args.output, separator='\t')
 
 
