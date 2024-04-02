@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import argparse
 import textwrap
-import os
 import numpy as np
 
 '''required and optional argument parser'''
@@ -9,7 +8,7 @@ import numpy as np
 parser = argparse.ArgumentParser(prog='pfb_to_bed',
                                  formatter_class=argparse.RawDescriptionHelpFormatter,
                                  description=textwrap.dedent('''\
-                        create a bed format file from a penn cnv pfb file 
+                        create a bed format file from a penn cnv pfb file
                         ------------------------------------------------
                         '''),
                                  add_help=False,
@@ -46,24 +45,31 @@ required.add_argument('--outfile', type=str,
 def main():
     args = parser.parse_args()
     fout = open(args.outfile, 'wt')
-    
+
+    chr_sizes = {}
+    with open(args.chr_sizes, 'rt') as cin:
+        for line in cin:
+            line = line.strip().split('\t')
+            chr_sizes[line[0]] = line[1]
+
     with open(args.pfb, 'rt') as fin:
         line_info = {}
         for i, line in enumerate(fin):
             if i == 0:
                 line = line.strip().split('\t')
-                for j,l in enumerate(line):
+                for j, l in enumerate(line):
                     line_info[l] = j
             else:
                 line = line.strip().split('\t')
-                pos = int(line[line_info['Position']])
-                start = np.max([pos -1 - args.window,0])
-                end = pos + args.window
                 chrom = line[line_info['Chr']]
+                chrom_size = chr_sizes[chrom]
                 name = line[line_info['Name']]
+                pos = int(line[line_info['Position']])
+
+                start = np.max([pos - 1 - args.window, 0])
+                end = np.min([pos + args.window, chrom_size])
                 print(chrom + '\t' + str(start) + '\t' + str(end) + '\t' + name + '\n', file=fout)
     fout.close()
-
 
 
 if __name__ == '__main__':
