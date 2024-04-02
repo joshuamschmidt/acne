@@ -35,6 +35,9 @@ required.add_argument('--window', type=int, dest='window',
                       help='window size in bp',
                       default=500000)
 
+required.add_argument('--chr_sizes', type=str, dest='chr_sizes',
+                      help='list of chr sizes form ucsc')
+
 required.add_argument('--outfile', type=str,
                       dest='outfile',
                       help='name of output file')
