@@ -50,7 +50,7 @@ def main():
     with open(args.chr_sizes, 'rt') as cin:
         for line in cin:
             line = line.strip().split('\t')
-            chr_sizes[line[0]] = line[1]
+            chr_sizes[line[0]] = int(line[1])
 
     with open(args.pfb, 'rt') as fin:
         line_info = {}
