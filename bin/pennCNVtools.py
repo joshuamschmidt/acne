@@ -73,7 +73,7 @@ optional.add_argument('--geno', type=float, dest='geno',
 
 optional.add_argument('--samplefilter', type=str,
                       dest='samplefilter',
-                      help='samplefilter is 2 two col file listing sample namne and binary flag (1 == keep, 0 = filter)',
+                      help='samplefilter is 2 two col file listing sample name and binary flag (1 == keep, 0 = filter)',
                       default=None)
 
 
