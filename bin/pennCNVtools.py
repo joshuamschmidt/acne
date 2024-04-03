@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import argparse
-import numpy as np
-import polars as pl
-import textwrap
 import os
+import numpy as np
+import textwrap
 
 '''required and optional argument parser'''
 
@@ -54,6 +53,9 @@ parser.add_argument('tool', metavar='TOOL', type=str, nargs=1, choices={
 
 required.add_argument('--input', type=str, dest='input',
                       help='input file with at minimum SNP Name and LRR and BAF cols per sample')
+
+required.add_argument('--n_threads', type=int, dest='n_threads',
+                      help='max polars threads', default=None)
 
 optional.add_argument('--output', type=str,
                       dest='output',
@@ -356,6 +358,9 @@ class pfbObj():
 def main():
     args = parser.parse_args()
     tool = args.tool[0]
+    if args.n_threads is not None:
+        os.environ['POLARS_MAX_THREADS'] = args.n_threads
+    import polars as pl
     if(tool == 'partition'):
         data = sampleDataPartition(args.input, args.n_per_partition, args.samplefilter)
         data.write_partition_data()
