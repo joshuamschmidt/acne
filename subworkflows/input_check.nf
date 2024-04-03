@@ -47,13 +47,8 @@ def create_channel_from_input(LinkedHashMap row) {
     gsfile_meta << meta
     !file(row.gsfile).exists() ? (exit 1, "Genome Studio file does not exist!\n${row.gsfile}") : !row.gsfile.toString().endsWith(".gz") ? (exit 1, "Genome Studio file should have gz extension!\n${row.gsfile}") : gsfile_meta <<  file(row.gsfile)
     !file(row.gsfile_samples).exists() ? (exit 1, "GS samples file does not exist!\n${row.gsfile_samples}") : !row.gsfile_samples.toString().endsWith(".csv") ? (exit 1, "GS samples file should have csv extension!\n${row.gsfile}") : gsfile_meta <<  file(row.gsfile_samples)
+    
     return gsfile_meta
 }
 
-def     ( ) {
-    // create meta map
-    def meta = [:]
-    meta.id  = row.id
 
-
-}
