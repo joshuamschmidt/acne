@@ -25,7 +25,6 @@ nextflow.enable.dsl=2
 // default params
 params.outdir = 'results/'
 params.input = 'sample_sheet.txt'
-params.gc_model = 'assets/hg19.gc5Base.txt.gz'
 params.hmm = 'assets/hh550.hmm'
 params.partition = false
 params.partition_n = false
@@ -33,12 +32,11 @@ params.partition_n = false
 log.info """\
  A C N E - N F   P I P E L I N E
  ===================================
- input        : ${params.input}
- gcModel      : ${params.gc_model}
- hmm          : ${params.hmm}
- partition    : ${params.partition}
- partition_n  : ${params.partition_n}
- outdir       : ${params.outdir}
+ input          : ${params.input}
+ hmm            : ${params.hmm}
+ partition      : ${params.partition}
+ partition_n    : ${params.partition_n}
+ outdir         : ${params.outdir}
  """
 
 /*
