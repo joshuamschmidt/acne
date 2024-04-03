@@ -24,19 +24,23 @@ nextflow.enable.dsl=2
 
 // default params
 params.outdir = 'results/'
-params.input = 'sample_sheet.txt'
 params.hmm = 'assets/hh550.hmm'
+params.input = false
 params.partition = false
 params.partition_n = false
+params.reference = false
+params.reference_idx = false
 
 log.info """\
  A C N E - N F   P I P E L I N E
  ===================================
- input          : ${params.input}
+ outdir         : ${params.outdir}
  hmm            : ${params.hmm}
+ input          : ${params.input}
  partition      : ${params.partition}
  partition_n    : ${params.partition_n}
- outdir         : ${params.outdir}
+ reference      : ${params.reference}
+ reference_idx  : ${params.reference_idx}
  """
 
 /*
