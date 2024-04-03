@@ -54,7 +54,7 @@ parser.add_argument('tool', metavar='TOOL', type=str, nargs=1, choices={
 required.add_argument('--input', type=str, dest='input',
                       help='input file with at minimum SNP Name and LRR and BAF cols per sample')
 
-required.add_argument('--n_threads', type=str, dest='n_threads',
+required.add_argument('--n_threads', type=int, dest='n_threads',
                       help='max polars threads', default=None)
 
 optional.add_argument('--output', type=str,
