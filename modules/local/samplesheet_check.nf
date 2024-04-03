@@ -16,8 +16,9 @@ process SAMPLESHEET_CHECK {
     when:
     task.ext.when == null || task.ext.when
 
-    script: // This script is bundled with the pipeline, in nf-core/rnaseq/bin/
+    script:
     """
     cp $samplesheet samplesheet.valid.csv
     """
 }
+        
