@@ -1,7 +1,6 @@
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input,
-    params.gc_model,
     params.hmm
 ]
 
