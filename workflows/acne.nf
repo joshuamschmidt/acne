@@ -53,7 +53,7 @@ workflow ACNE {
             exit 1
         }
         // PARTITIONGS returns uncompressed
-        PARTITIONGS(INPUT_CHECK.out.gsfiles, params.partition_n)
+        PARTITIONGS(INPUT_CHECK.out.gsfiles, INPUT_CHECK.out.sample_include, params.partition_n)
             .transpose()
             .map {
                 meta, partition ->
