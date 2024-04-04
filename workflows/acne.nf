@@ -53,11 +53,7 @@ workflow ACNE {
     // 2: also partition how many ind files are passed to the CNV caller.
 
     // note also that splitting uses python polars - so more efficient using uncompressed input
-    if (params.partition) {
-        if (!params.partition_n) {
-            log.error "must inlude n samples to split large GS project"
-            exit 1
-        }
+    if (params.partition_n) {
         // PARTITIONGS returns uncompressed
 
         PARTITIONGS(gsfile_sample_include_ch, params.partition_n)
