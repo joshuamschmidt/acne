@@ -16,6 +16,6 @@ process PARTITIONGS {
 
     """
     export POLARS_MAX_THREADS=${task.cpus}
-    pennCNVtools.py partition --input $gsfile --n $partition_size
+    pennCNVtools.py partition --input $gsfile --n $partition_size --sample_filter $sample_include
     """
 }
