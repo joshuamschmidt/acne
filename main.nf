@@ -24,12 +24,14 @@ nextflow.enable.dsl=2
 
 // default params
 params.outdir = 'results/'
-params.hmm = 'assets/hh550.hmm'
-params.input = false
-params.partition = false
+params.hmm = false // must be specified
+params.input = false // must be specified
 params.partition_n = false
-params.reference = false
-params.reference_idx = false
+params.reference = false // must be specified
+params.reference_idx = false // must be specified
+params.gc_window = 500000
+params.chr_sizes = false // must be specified
+
 
 log.info """\
  A C N E - N F   P I P E L I N E
@@ -37,10 +39,11 @@ log.info """\
  outdir         : ${params.outdir}
  hmm            : ${params.hmm}
  input          : ${params.input}
- partition      : ${params.partition}
  partition_n    : ${params.partition_n}
  reference      : ${params.reference}
  reference_idx  : ${params.reference_idx}
+ gc_window      : ${params.gc_window}
+ chr_sizes      : ${params.chr_sizes}
  """
 
 /*
