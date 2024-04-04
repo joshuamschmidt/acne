@@ -1,7 +1,10 @@
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input,
-    params.hmm
+    params.hmm,
+    params.reference,
+    params.reference_idx,
+    params.chr_sizes
 ]
 
 /*
@@ -24,7 +27,8 @@ include { BATCH_CALL     } from '../subworkflows/batch'
 include { PARTITIONGS    } from '../modules/local/partition'
 include { SPLITGS        } from '../modules/local/split_gs'
 include { MAKEPFB        } from '../modules/local/make_pfb'
-include { PENNCNV_GC     } from '../modules/local/penn_gc'
+//include { PENNCNV_GC     } from '../modules/local/penn_gc'
+include { GC_CONTENT     } from '../subworkflows/gc_content'
 include { PENNCNV_DETECT } from '../modules/local/penn_detect'
 include { PENNCNV_MERGE  } from '../modules/local/penn_merge'
 include { CONCATENATE_PENN_CALLS  } from '../modules/local/concatenate_penn_calls.nf'
@@ -72,9 +76,9 @@ workflow ACNE {
         // pfb and gcmodel files, unique to each subbatch instantiated by PARTITIONGS
         MAKEPFB( ch_pre_split )
 
-        PENNCNV_GC( MAKEPFB.out.output, params.gc_model )
+        GC_CONTENT( MAKEPFB.out.output, params.reference, params.reference_idx )
 
-        PENNCNV_GC.out.output
+        GC_CONTENT.out.gc
             .join(MAKEPFB.out.output)
             .map{
                 meta, gc_files, pfb_files ->
