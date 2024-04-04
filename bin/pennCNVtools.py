@@ -216,7 +216,7 @@ class plSchema():
 
 # '''class for data to split into n ind chunks'''
 class sampleDataPartition():
-    def __init__(self, input: str, target_n: int, samplefilter: str):
+    def __init__(self, input: str, prefix: str, target_n: int, samplefilter: str):
         self.input = input
         self.target_n = target_n
         self.samplefilter = samplefilter
@@ -225,7 +225,7 @@ class sampleDataPartition():
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.__load_data()
         self.__define_partition_n()
-        self.prefix = os.path.splitext(input)[0]
+        self.prefix = prefix
 
     def __load_data(self):
         q = (pl.scan_csv(
@@ -357,7 +357,7 @@ def main():
     args = parser.parse_args()
     tool = args.tool[0]
     if(tool == 'partition'):
-        data = sampleDataPartition(args.input, args.n_per_partition, args.samplefilter)
+        data = sampleDataPartition(args.input, args.prefix, args.n_per_partition, args.samplefilter)
         data.write_partition_data()
 
     if(tool == 'split'):
