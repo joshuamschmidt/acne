@@ -41,7 +41,9 @@ workflow ACNE {
 
     INPUT_CHECK( ch_input )
 
-
+    input_ch.gsfile
+    .join(input_ch.sample_include)
+    .set { gsfile_sample_include_ch }
     // big GS files can be partitioned for efficiency
     // 1: partition into batches of size partition_n. (affects PBF and GC model creation steps)
     // 2: also partition how many ind files are passed to the CNV caller.
@@ -53,7 +55,8 @@ workflow ACNE {
             exit 1
         }
         // PARTITIONGS returns uncompressed
-        PARTITIONGS(INPUT_CHECK.out.gsfiles, INPUT_CHECK.out.sample_include, params.partition_n)
+
+        PARTITIONGS(gsfile_sample_include_ch, params.partition_n)
             .transpose()
             .map {
                 meta, partition ->
