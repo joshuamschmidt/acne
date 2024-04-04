@@ -68,7 +68,7 @@ def main():
 
                 start = np.max([pos - 1 - args.window, 0])
                 end = np.min([pos + args.window, chrom_size])
-                print(chrom + '\t' + str(start) + '\t' + str(end) + '\t' + name + '\n', file=fout)
+                print(chrom + '\t' + str(start) + '\t' + str(end) + '\t' + name, file=fout)
     fout.close()
 
 
