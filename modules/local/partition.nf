@@ -7,8 +7,7 @@ process PARTITIONGS {
     val(partition_size)
 
     output:
-    tuple val(meta), path("${prefix}*"), emit: output
-    //path '*.partition'
+    tuple val(meta), path("${prefix}*partition"), emit: output
 
     script:
     def args = task.ext.args ?: ''
@@ -16,6 +15,10 @@ process PARTITIONGS {
 
     """
     export POLARS_MAX_THREADS=${task.cpus}
-    pennCNVtools.py partition --input $gsfile --n $partition_size --sample_filter $sample_include
+    pennCNVtools.py partition \
+    --input $gsfile \
+    --prefix $prefix \
+    --n $partition_size \
+    --sample_filter $sample_include
     """
 }
