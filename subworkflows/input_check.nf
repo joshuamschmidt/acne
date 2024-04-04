@@ -52,8 +52,8 @@ def create_meta_list_from_input(LinkedHashMap row) {
 
     def gsfile          = !file(row.gsfile).exists() ? (exit 1, "Genome Studio file does not exist!\n${row.gsfile}") : !row.gsfile.toString().endsWith(".gz") ? (exit 1, "Genome Studio file should have gz extension!\n${row.gsfile}") : tuple(meta, file(row.gsfile))
     def gs_sample_sheet = !file(row.gs_sample_sheet).exists() ? (exit 1, "GS samples file does not exist!\n${row.gs_sample_sheet}") : !row.gs_sample_sheet.toString().endsWith(".csv") ? (exit 1, "GS samples file should have csv extension!\n${row.gs_sample_sheet}") : tuple(meta, file(row.gs_sample_sheet))
-    def sample_include  = !row.sample_include ? tuple(meta, '') : !file(row.sample_include).exists() ? (exit 1, "sample include file does not exist!\n${row.sample_include}") : tuple(meta, file(row.sample_include)) 
-    def snp_include     = !row.snp_include ? tuple(meta, '') : !file(row.snp_include).exists() ? (exit 1, "SNP include file does not exist!\n${row.snp_include}") : tuple(meta, file(row.snp_include))
+    def sample_include  = !row.sample_include ? tuple(meta, file("${projectDir}/assets/sample_include_dummy.txt")) : !file(row.sample_include).exists() ? (exit 1, "sample include file does not exist!\n${row.sample_include}") : tuple(meta, file(row.sample_include)) 
+    def snp_include     = !row.snp_include ? tuple(meta, file("${projectDir}/assets/snp_include_dummy.txt")) : !file(row.snp_include).exists() ? (exit 1, "SNP include file does not exist!\n${row.snp_include}") : tuple(meta, file(row.snp_include))
 
     def out = [gsfile, gs_sample_sheet, sample_include, snp_include]
 
