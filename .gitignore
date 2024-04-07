@@ -10,3 +10,6 @@ testing*
 *tmp*
 test_data/*
 test_data*
+.nf-test.log
+.nf-test/*
+
