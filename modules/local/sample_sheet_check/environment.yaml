@@ -1,0 +1,7 @@
+name: samnple_sheet_check
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - bioconda::python=3.9.1
