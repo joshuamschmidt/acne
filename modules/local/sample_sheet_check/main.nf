@@ -10,7 +10,7 @@ process SAMPLESHEET_CHECK {
     path samplesheet
 
     output:
-    path '*valid.csv'       , emit: csv
+    path ("${samplesheet.baseName}-valid.csv")       , emit: csv
     //path "versions.yml", emit: versions
 
     when:
@@ -18,7 +18,9 @@ process SAMPLESHEET_CHECK {
 
     script:
     """
-    cp $samplesheet samplesheet.valid.csv
+    input_sample_sheet_check.pl \
+    --samplesheet $samplesheet \
+    --outfile ${samplesheet.baseName}-valid.csv
     """
 }
         
