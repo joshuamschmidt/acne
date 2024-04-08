@@ -1,0 +1,21 @@
+name: sample_sheet_check
+description: Checks the correctness of the input sample sheet
+keywords:
+  - sample sheet
+tools:
+  - input_sample_sheet_check.pl:
+input:
+  - samplesheet:
+      type: file
+      description: input samplesheet
+      pattern: "*.{csv}"
+output:
+  - valid_samplesheet:
+      type: file
+      description: validated samplesheet
+      pattern: "*.{csv}"
+
+authors:
+  - "@joshuamschmidt"
+maintainers:
+  - "@joshuamschmidt"
