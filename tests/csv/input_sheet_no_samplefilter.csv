@@ -1,0 +1,2 @@
+id,gsfile,gs_sample_sheet,sample_include,snp_include
+TEST,tests/data/test-BAF.tsv.gz,tests/csv/test-sample_sheet.csv,tests/csv/test_snps.include.csv
