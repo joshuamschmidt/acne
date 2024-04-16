@@ -113,30 +113,29 @@ class MergedData():
                 self.sample_names[i] = new_name
 
     def write_merged(self, outfile):
-        namesdf = pd.DataFrame(self.snp_name_index, columns=['Name'])
+        namesdf = pl.Series("Name", self.snp_name_index)
         data_cols = [[s+'.B Allele Freq', s+'.Log R Ratio'] for s in self.sample_names]
         data_cols = [c for tup in data_cols for c in tup]
-        datadf = pd.DataFrame(self.data_array, columns=data_cols)
-        outdf = pd.concat([namesdf, datadf], axis=1)
-        outdf.write_csv
-
+        datadf = pl.from_numpy(self.data_array, schema = data_cols)
+        datadf.insert_column(0, namesdf)
+        datadf.write_csv(file = )
 
 
 class Sample():
     def __init__(self, file, snp_name_index):
         self.file = file
         self.data_array = np.empty([len(snp_name_index), 2], dtype=np.float64)
-        data = pl.read_csv(self.file, sep='\t', has_header=True)
-        assert(data.columns[0] == 'Name')
-        assert(list(data.iloc[:, 0].to_numpy()) == snp_name_index)
+        data = pl.read_csv(self.file, separator='\t', has_header=True)
+        assert(data.get_column_index("Name") == 0)
+        np.all(data.get_column("Name").to_numpy() == np.asarray(snp_name_index))
         data_col_ids = [c.split('.')[1] for c in list(data.columns)[1:]]
         s_names = [c.split('.')[0] for c in list(data.columns)[1:]]
         assert(np.size(np.unique(s_names)) == 1)
         self.name = np.unique(s_names)[0]
         idxs = [data_col_ids.index(c) + 1 for c in ['B Allele Freq', 'Log R Ratio']]
         assert(len(idxs) == 2)
-        self.data_array[:, 0] = data.iloc[:, idxs[0]].to_numpy()
-        self.data_array[:, 1] = data.iloc[:, idxs[1]].to_numpy()
+        self.data_array[:, 0] = data.get_column(data.columns[idxs[0]]).to_numpy()
+        self.data_array[:, 1] = data.get_column(data.columns[idxs[1]]).to_numpy()
 
 
 class NameKey():
