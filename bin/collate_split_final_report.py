@@ -82,7 +82,6 @@ class MergedData():
         self.data_array = np.empty([self.n_snps, self.n_files * 2],
                                    dtype=np.float64)
         self.sample_names = []
-        self.fill_data_array()
 
     def __get_snp_names(self):
         with open(self.files[0], 'rt', newline='') as f:
@@ -96,7 +95,7 @@ class MergedData():
                 else:
                     self.snp_name_index.append(line[name_idx])
 
-    def __fill_data_array(self):
+    def fill_data_array(self):
         # for 0..k samples, fill 2n, 2n+1 (BAF then LRR)
         for i, file in enumerate(self.files):
             s = Sample(file, self.snp_name_index)
