@@ -4,7 +4,8 @@ import textwrap
 import csv
 import numpy as np
 import os
-import pandas as pd
+import polars as pl
+
 '''required and optional argument parser'''
 
 parser = argparse.ArgumentParser(
@@ -81,7 +82,7 @@ class MergedData():
         self.data_array = np.empty([self.n_snps, self.n_files * 2],
                                    dtype=np.float64)
         self.sample_names = []
-        self.__fill_data_array()
+        self.fill_data_array()
 
     def __get_snp_names(self):
         with open(self.files[0], 'rt', newline='') as f:
@@ -126,7 +127,7 @@ class Sample():
     def __init__(self, file, snp_name_index):
         self.file = file
         self.data_array = np.empty([len(snp_name_index), 2], dtype=np.float64)
-        data = pd.read_csv(self.file, sep='\t', header=0)
+        data = pl.read_csv(self.file, sep='\t', has_header=True)
         assert(data.columns[0] == 'Name')
         assert(list(data.iloc[:, 0].to_numpy()) == snp_name_index)
         data_col_ids = [c.split('.')[1] for c in list(data.columns)[1:]]
