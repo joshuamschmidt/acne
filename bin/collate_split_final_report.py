@@ -39,9 +39,9 @@ required.add_argument(
 )
 
 required.add_argument(
-    '--out',
+    '--outfile',
     type=argparse.FileType('w'),
-    dest='out_file',
+    dest='outfile',
     help='output file (or stdout if not set)'
 )
 
@@ -58,6 +58,22 @@ optional.add_argument(
     type=str,
     dest='coord',
     help='file listing snp Chr, Pos, SNP name',
+    default=None
+)
+
+optional.add_argument(
+    '--snpfile',
+    type=str,
+    dest='snpfile',
+    help='file listing SNPs to keep in merged output',
+    default=None
+)
+
+optional.add_argument(
+    '--subsample',
+    type=float,
+    dest='subsample',
+    help='select fraction of SNPs in output',
     default=None
 )
 
@@ -82,6 +98,7 @@ class MergedData():
         self.data_array = np.empty([self.n_snps, self.n_files * 2],
                                    dtype=np.float64)
         self.sample_names = []
+        self.__get_data()
 
     def __get_snp_names(self):
         with open(self.files[0], 'rt', newline='') as f:
@@ -95,7 +112,7 @@ class MergedData():
                 else:
                     self.snp_name_index.append(line[name_idx])
 
-    def fill_data_array(self):
+    def __get_data(self):
         # for 0..k samples, fill 2n, 2n+1 (BAF then LRR)
         for i, file in enumerate(self.files):
             s = Sample(file, self.snp_name_index)
@@ -112,13 +129,23 @@ class MergedData():
             if new_name is not None:
                 self.sample_names[i] = new_name
 
-    def write_merged(self, outfile):
+    def format_data(self):
         namesdf = pl.Series("Name", self.snp_name_index)
         data_cols = [[s+'.B Allele Freq', s+'.Log R Ratio'] for s in self.sample_names]
         data_cols = [c for tup in data_cols for c in tup]
-        datadf = pl.from_numpy(self.data_array, schema = data_cols)
+        datadf = pl.from_numpy(self.data_array, schema=data_cols)
         datadf.insert_column(0, namesdf)
-        datadf.write_csv(file = )
+        self.data_array = datadf
+
+    def filter_snps(self, snpfile):
+        keep_snps = pl.read_csv(snpfile, separator='\t', has_header=True)
+        self.data_array = self.data_array.join(keep_snps, on="Name")
+
+    def subsample(self, fraction):
+        self.data_array =  self.data_array.sample(fraction=fraction, with_replacement = False)
+
+    def write_merged(self, outfile):
+        self.data_array.write_csv(file=outfile, separator='\t', quote_style='never', include_header=True)
 
 
 class Sample():
@@ -155,9 +182,15 @@ class NameKey():
 
 def main():
     args = parser.parse_args()
+    data = MergedData(args.files)
     if args.n_map is not None:
-        names = NameKey(args.n_map)
-
+        data.rename_samples(args.n_map)
+    data.format_data()
+    if args.snpfile is not None:
+        data.filter_snps(args.snpfile)
+    if args.subsample is not None:
+        data.subsample(args.subsample)
+    data.write_merged(args.outfile)
 
 if __name__ == '__main__':
     main()
