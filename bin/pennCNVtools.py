@@ -318,10 +318,14 @@ class pfbObj():
         self.__get_pfb()
 
     def __get_pfb(self):
+        low_mem = False
+        if os.stat(self.input) > int(1.6e+10):
+            low_mem = True
+        
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
                         with_column_names=lambda cols: list(self.plSchema.schema.keys()),
-                        dtypes=self.plSchema.schema,
+                        dtypes=self.plSchema.schema, low_memory = low_mem,
                         null_values=['NAN','NaN','NA','Inf','-Inf','./.'])
             .drop(self.sampleOrder.pl_filter)
             .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$"),pl.col("^*.GType$")])
