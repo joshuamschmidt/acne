@@ -98,6 +98,7 @@ class fileStructure():
             self.n_per_sample = 3
         self.n_expected = len(self.std_cols) + self.n_per_sample * self.n_BAF
         self.__validate()
+        self.size = int(round(os.stat(self.file).st_size / 1e9, 0))
 
     def __get_header(self):
         with open(self.file, 'rt') as fh:
