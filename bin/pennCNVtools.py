@@ -329,7 +329,7 @@ class pfbObj():
                 pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
                     pl.col("^*.GType$").is_null())).otherwise(pl.sum_horizontal(
                     pl.col("^*.B Allele Freq$").is_nan())).alias('n_miss'),
-                    pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
+                pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
                     pl.col("^*.GType$").is_not_null())).otherwise(pl.sum_horizontal(
                     pl.col("^*.B Allele Freq$").is_not_nan())).alias('n_call'),
             ])
@@ -348,8 +348,7 @@ class pfbObj():
             .select([*self.fileStructure.std_cols, "BAF", "n_miss", "n_call"])
         )
         s = q.collect(streaming=True)
-        s = s.filter(pl.col("n_miss")/(pl.col("n_miss") +
-                                       pl.col("n_call")) < self.geno)
+        s = s.filter(pl.col("n_miss")/( pl.col("n_miss") + pl.col("n_call") ) < self.geno)
         s = s.select([
             *self.fileStructure.std_cols,
             pl.when(pl.col("Name").str.contains("cnv|CNV")).then(
