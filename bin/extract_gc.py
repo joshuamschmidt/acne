@@ -57,7 +57,8 @@ def main():
                 line = line.strip().split('\t')
                 snp_name = line[col_dict['4_usercol']]
                 snp_gc = float(line[col_dict['6_pct_gc']]) * 100
-                print(snp_name + '\t' + str(snp_gc), file=fout)
+                snp_gc_format = "{:.8f}".format(snp_gc)
+                print(snp_name + '\t' + str(snp_gc_format), file=fout)
     fout.close()
 
 
