@@ -326,27 +326,12 @@ class pfbObj():
                         schema=self.plSchema.schema, low_memory = low_mem,
                         null_values=['NAN','NaN','NA','Inf','-Inf','./.'])
             .drop(self.sampleOrder.pl_filter)
-        )
-
-        if self.fileStructure.n_GT >= 1:
-            q = (
-                q.select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$"), pl.col("^*.GType$")])
-                .with_columns([
-                    pl.sum_horizontal(pl.col("^*.GType$").is_null()).alias('n_miss'),
-                    ])
-                .drop(pl.col("^*.GType$"))
-            )
-        else:
-            q = (
-                q.select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
-                .with_columns([
-                    pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
-                    ])
-            )
-
-        
-        q = ( 
-            q.with_columns([
+            .drop(pl.col("^*.GType$"))
+            .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
+            .with_columns([
+                pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
+                ])
+            .with_columns([
                 (self.fileStructure.n_BAF - pl.col("n_miss")).alias("n_call")
                 ])
             .fill_nan(0)
