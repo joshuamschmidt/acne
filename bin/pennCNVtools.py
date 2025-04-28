@@ -89,7 +89,7 @@ class fileStructure():
     def __init__(self, file: str):
         self.file = file
         self.__get_header()
-        self.__get_std()
+        self.__get_std()    
         self.n_BAF = self.__n_data_cols('B Allele Freq')
         self.n_LRR = self.__n_data_cols('Log R Ratio')
         self.n_per_sample = 2
@@ -319,7 +319,10 @@ class pfbObj():
 
     def __get_pfb(self):
         q = (
-            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1, with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema)
+            pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
+                        with_column_names=lambda cols: list(self.plSchema.schema.keys()),
+                        dtypes=self.plSchema.schema,
+                        null_values=['NAN','NaN','NA','Inf','-Inf'])
             .drop(self.sampleOrder.pl_filter)
             .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
             .with_columns([
