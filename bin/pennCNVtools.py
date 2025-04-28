@@ -323,8 +323,7 @@ class pfbObj():
         
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
-                        with_column_names=lambda cols: list(self.plSchema.schema.keys()),
-                        dtypes=self.plSchema.schema, low_memory = low_mem,
+                        schema=self.plSchema.schema, low_memory = low_mem,
                         null_values=['NAN','NaN','NA','Inf','-Inf','./.'])
             .drop(self.sampleOrder.pl_filter)
         )
