@@ -30,7 +30,7 @@ optional.add_argument(
 required.add_argument('--pfb', type=str, dest='pfb',
                       help='pfb file with name, chr, pos')
 
-required.add_argument('--window', type=int, dest='window',
+optional.add_argument('--window', type=int, dest='window',
                       help='window size in bp',
                       default=500000)
 
