@@ -322,14 +322,16 @@ class pfbObj():
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
                         with_column_names=lambda cols: list(self.plSchema.schema.keys()),
                         dtypes=self.plSchema.schema,
-                        null_values=['NAN','NaN','NA','Inf','-Inf'])
+                        null_values=['NAN','NaN','NA','Inf','-Inf','./.'])
             .drop(self.sampleOrder.pl_filter)
-            .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
+            .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$"),pl.col("^*.GType$")])
             .with_columns([
-                pl.sum_horizontal(
-                    pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
-                pl.sum_horizontal(
-                    pl.col("^*.B Allele Freq$").is_not_nan()).alias('n_call'),
+                pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
+                    pl.col("^*.GType$").is_null())).otherwise(pl.sum_horizontal(
+                    pl.col("^*.B Allele Freq$").is_nan())).alias('n_miss'),
+                    pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
+                    pl.col("^*.GType$").is_not_null())).otherwise(pl.sum_horizontal(
+                    pl.col("^*.B Allele Freq$").is_not_nan())).alias('n_call'),
             ])
             .fill_nan(0)
             .with_columns([
