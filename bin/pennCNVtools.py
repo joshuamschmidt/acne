@@ -319,9 +319,7 @@ class pfbObj():
         self.__get_pfb()
 
     def __get_pfb(self):
-        low_mem = False
-        if os.stat(self.input) > int(1.6e+10):
-            low_mem = True
+        low_mem = True if self.fileStructure.size > 16 else False
         
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
@@ -329,15 +327,24 @@ class pfbObj():
                         dtypes=self.plSchema.schema, low_memory = low_mem,
                         null_values=['NAN','NaN','NA','Inf','-Inf','./.'])
             .drop(self.sampleOrder.pl_filter)
-            .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$"),pl.col("^*.GType$")])
+        )
+
+        if self.fileStructure.n_GT >= 1:
+            q = (q.select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$"), pl.col("^*.GType$")])
             .with_columns([
-                pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
-                    pl.col("^*.GType$").is_null())).otherwise(pl.sum_horizontal(
-                    pl.col("^*.B Allele Freq$").is_nan())).alias('n_miss'),
-                pl.when(self.fileStructure.n_GT >= 1).then(pl.sum_horizontal(
-                    pl.col("^*.GType$").is_not_null())).otherwise(pl.sum_horizontal(
-                    pl.col("^*.B Allele Freq$").is_not_nan())).alias('n_call'),
-            ])
+                pl.sum_horizontal(pl.col("^*.GType$").is_null()).alias('n_miss'),
+                ]))
+        else:
+            q = (q.select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
+             .with_columns([
+                pl.sum_horizontal(pl.col("^*.B Allele Freq$").is_nan()).alias('n_miss'),
+                ]))
+
+        
+        q = ( 
+            q.with_columns([
+                (self.fileStructure.n_BAF - pl.col("n_miss")).alias("n_call")
+                ])
             .fill_nan(0)
             .with_columns([
                 pl.fold(acc=pl.lit(0),
