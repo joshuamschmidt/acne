@@ -347,7 +347,7 @@ class pfbObj():
             ])
             .select([*self.fileStructure.std_cols, "BAF", "n_miss", "n_call"])
         )
-        s = q.collect(streaming=True)
+        s = q.collect()
         s = s.filter(pl.col("n_miss")/( pl.col("n_miss") + pl.col("n_call") ) < self.geno)
         s = s.select([
             *self.fileStructure.std_cols,
