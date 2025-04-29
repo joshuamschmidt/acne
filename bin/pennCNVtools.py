@@ -323,8 +323,7 @@ class pfbObj():
         
         q = (
             pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
-                        schema=self.plSchema.schema, low_memory = low_mem,
-                        null_values=['NAN','NaN','NA','Inf','-Inf','./.'])
+                        schema=self.plSchema.schema, low_memory = low_mem)
             .drop(self.sampleOrder.pl_filter)
             .drop(pl.col("^*.GType$"))
             .select([*[pl.col(c) for c in self.fileStructure.std_cols], pl.col("^*.B Allele Freq$")])
