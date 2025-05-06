@@ -229,12 +229,11 @@ class sampleDataPartition():
         self.prefix = prefix
 
     def __load_data(self):
+        low_mem = True if self.fileStructure.size > 16 else False
+
         q = (pl.scan_csv(
-            self.input,
-            separator='\t',
-            has_header=False,
-            skip_rows=1,
-            with_column_names=lambda cols: list(self.plSchema.schema.keys()), dtypes=self.plSchema.schema,
+            self.input, separator='\t', has_header=False, skip_rows=1,
+                        schema=self.plSchema.schema, low_memory = low_mem,
             )
             .drop(self.sampleOrder.pl_filter)
         )
