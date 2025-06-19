@@ -225,20 +225,8 @@ class sampleDataPartition():
         self.sampleOrder = sampleOrder(self.fileStructure, self.samplefilter)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
         self.prefix = prefix
-        #self.__load_data()
         self.__define_partition_n()
         self.__create_partition_sets()
-
-    def __load_data(self):
-        low_mem = True if self.fileStructure.size > 16 else False
-
-        q = (pl.scan_csv(
-            self.input, separator='\t', has_header=False, skip_rows=1,
-                        schema=self.plSchema.schema, low_memory = low_mem,
-            )
-            .drop(self.sampleOrder.pl_filter)
-        )
-        self.df = q.collect()
 
     def __define_partition_n(self):
         n_samples = len(self.sampleOrder.unique_samples) - len(self.sampleOrder.filter_idx)
@@ -257,18 +245,6 @@ class sampleDataPartition():
             for i in range(remainder):
                 self.partition_ns[i] += 1
 
-    def write_partition_data(self):
-        all_samples = [s for i, s in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
-        for i, n in enumerate(self.partition_ns):
-            samples = all_samples[:n]
-            sample_cols = []
-            for sample in samples:
-                sample_cols += [sample + '.' + col for col in self.sampleOrder.per_sample_cols]
-            sub = self.df.select([*self.fileStructure.std_cols, *sample_cols])
-            sub.write_csv(self.prefix + "-" + str(i+1) +
-                          '.partition', separator='\t')
-            all_samples = all_samples[n:]
-    
     def __create_partition_sets(self):
         all_samples = [s for i, s in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
         self.partitions = []
@@ -383,7 +359,7 @@ def main():
     tool = args.tool[0]
     if(tool == 'partition'):
         data = sampleDataPartition(args.input, args.prefix, args.n_per_partition, args.samplefilter)
-        data.write_partition_data()
+        data.make_partitions()
 
     if(tool == 'split'):
         data = sampleDataSplit(args.input, args.prefix, args.samplefilter)
