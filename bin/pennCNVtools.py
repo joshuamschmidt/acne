@@ -255,16 +255,18 @@ class sampleDataPartition():
                 sample_cols += [sample + '.' + col for col in self.sampleOrder.per_sample_cols]
             this_partition = [*self.fileStructure.std_cols, *sample_cols]
             self.partitions.append(this_partition)
+            all_samples = all_samples[n:]
     
     def make_partitions(self):
         for i, partition in enumerate(self.partitions):
             q = (
                 pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
                         schema=self.plSchema.schema)
-                .select(*partition)
-            )
-            q.sink_csv(self.prefix + "-" + str(i+1) +
+                .select([*partition])
+                .sink_csv(self.prefix + "-" + str(i+1) +
                           '.partition', separator='\t') 
+            )
+            del(q)
 
 
 # '''class for data to split by ind'''
