@@ -224,9 +224,10 @@ class sampleDataPartition():
         self.fileStructure = fileStructure(self.input)
         self.sampleOrder = sampleOrder(self.fileStructure, self.samplefilter)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
-        self.__load_data()
-        self.__define_partition_n()
         self.prefix = prefix
+        #self.__load_data()
+        self.__define_partition_n()
+        self.__create_partition_sets()
 
     def __load_data(self):
         low_mem = True if self.fileStructure.size > 16 else False
@@ -267,6 +268,27 @@ class sampleDataPartition():
             sub.write_csv(self.prefix + "-" + str(i+1) +
                           '.partition', separator='\t')
             all_samples = all_samples[n:]
+    
+    def __create_partition_sets(self):
+        all_samples = [s for i, s in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
+        self.partitions = []
+        for i, n in enumerate(self.partition_ns):
+            samples = all_samples[:n]
+            sample_cols = []
+            for sample in samples:
+                sample_cols += [sample + '.' + col for col in self.sampleOrder.per_sample_cols]
+            this_partition = [*self.fileStructure.std_cols, *sample_cols]
+            self.partitions.append(this_partition)
+    
+    def make_partitions(self):
+        for i, partition in enumerate(self.partitions):
+            q = (
+                pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
+                        schema=self.plSchema.schema)
+                .select(*partition)
+            )
+            q.sink_csv(self.prefix + "-" + str(i+1) +
+                          '.partition', separator='\t') 
 
 
 # '''class for data to split by ind'''
