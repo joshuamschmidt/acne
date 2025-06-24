@@ -47,12 +47,15 @@ def main():
     fout = open(args.outfile, 'wt')
 
     chr_sizes = {}
+    ucsc_prefix = False
     with open(args.chr_sizes, 'rt') as cin:
         for line in cin:
             line = line.strip().split('\t')
-            chr_sizes[line[0]] = int(line[1])
-
+            chr_sizes[str(line[0])] = int(line[1])
+    if all([k.startswith('chr') for k in chr_sizes.keys()]):
+        ucsc_prefix = True
     with open(args.pfb, 'rt') as fin:
+        pfb_prefix = False
         line_info = {}
         for i, line in enumerate(fin):
             if i == 0:
@@ -62,7 +65,12 @@ def main():
             else:
                 line = line.strip().split('\t')
                 chrom = line[line_info['Chr']]
-                chrom_size = chr_sizes[chrom]
+                if i == 1:
+                    if chrom.startswith('chr'):
+                        pfb_prefix = True
+                    if ucsc_prefix and pfb_prefix != ucsc_prefix:
+                        chr_sizes = {key.replace("chr", ""): value for key, value in chr_sizes.items()}
+                chrom_size = chr_sizes[str(chrom)]
                 name = line[line_info['Name']]
                 pos = int(line[line_info['Position']])
 

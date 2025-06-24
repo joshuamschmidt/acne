@@ -224,20 +224,9 @@ class sampleDataPartition():
         self.fileStructure = fileStructure(self.input)
         self.sampleOrder = sampleOrder(self.fileStructure, self.samplefilter)
         self.plSchema = plSchema(self.fileStructure, self.sampleOrder)
-        self.__load_data()
-        self.__define_partition_n()
         self.prefix = prefix
-
-    def __load_data(self):
-        low_mem = True if self.fileStructure.size > 16 else False
-
-        q = (pl.scan_csv(
-            self.input, separator='\t', has_header=False, skip_rows=1,
-                        schema=self.plSchema.schema, low_memory = low_mem,
-            )
-            .drop(self.sampleOrder.pl_filter)
-        )
-        self.df = q.collect()
+        self.__define_partition_n()
+        self.__create_partition_sets()
 
     def __define_partition_n(self):
         n_samples = len(self.sampleOrder.unique_samples) - len(self.sampleOrder.filter_idx)
@@ -256,17 +245,28 @@ class sampleDataPartition():
             for i in range(remainder):
                 self.partition_ns[i] += 1
 
-    def write_partition_data(self):
+    def __create_partition_sets(self):
         all_samples = [s for i, s in enumerate(self.sampleOrder.unique_samples) if i not in self.sampleOrder.filter_idx]
+        self.partitions = []
         for i, n in enumerate(self.partition_ns):
             samples = all_samples[:n]
             sample_cols = []
             for sample in samples:
                 sample_cols += [sample + '.' + col for col in self.sampleOrder.per_sample_cols]
-            sub = self.df.select([*self.fileStructure.std_cols, *sample_cols])
-            sub.write_csv(self.prefix + "-" + str(i+1) +
-                          '.partition', separator='\t')
+            this_partition = [*self.fileStructure.std_cols, *sample_cols]
+            self.partitions.append(this_partition)
             all_samples = all_samples[n:]
+    
+    def make_partitions(self):
+        for i, partition in enumerate(self.partitions):
+            q = (
+                pl.scan_csv(self.input, separator='\t', has_header=False, skip_rows=1,
+                        schema=self.plSchema.schema)
+                .select([*partition])
+                .sink_csv(self.prefix + "-" + str(i+1) +
+                          '.partition', separator='\t') 
+            )
+            del(q)
 
 
 # '''class for data to split by ind'''
@@ -361,7 +361,7 @@ def main():
     tool = args.tool[0]
     if(tool == 'partition'):
         data = sampleDataPartition(args.input, args.prefix, args.n_per_partition, args.samplefilter)
-        data.write_partition_data()
+        data.make_partitions()
 
     if(tool == 'split'):
         data = sampleDataSplit(args.input, args.prefix, args.samplefilter)
