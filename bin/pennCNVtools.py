@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import argparse
+import os
+import textwrap
+
 import numpy as np
 import polars as pl
-import textwrap
-import os
 
 '''required and optional argument parser'''
 
@@ -74,6 +75,13 @@ optional.add_argument('--geno', type=float, dest='geno',
 optional.add_argument('--samplefilter', type=str,
                       dest='samplefilter',
                       help='samplefilter is 2 two col file listing sample name and binary flag (1 == keep, 0 = filter)',
+                      default=None)
+
+optional.add_argument('--change-snp-names', action='store_true', dest='change_snp_names',
+                      help='to change SNP Names (id)')
+
+optional.add_argument('--name-schema', type=str, dest='name_schema',
+                      help='new naming schema. Currently only supports "chr:pos"',
                       default=None)
 
 
