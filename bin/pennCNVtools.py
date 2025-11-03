@@ -144,7 +144,7 @@ class sampleOrder():
         first_sample = sample_tups[0]
         self.per_sample_cols = []
         for i in range(fileStructure.n_per_sample):
-            self.per_sample_cols.append(first_sample[i].split('.')[1])
+            self.per_sample_cols.append(first_sample[i].split('.')[-1])
 
         self.samples = []
         for i in range(len(sample_tups)):
